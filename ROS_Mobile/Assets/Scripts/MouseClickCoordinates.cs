@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -55,7 +53,7 @@ public class MouseClickCoordinates : MonoBehaviour
             // Get the point where it hit
             mousePositionWorld = hit.point;
 
-            Debug.LogWarning(hit.collider.gameObject.name);
+            //Debug.LogWarning(hit.collider.gameObject.name);
         }
         else
         {
@@ -64,10 +62,11 @@ public class MouseClickCoordinates : MonoBehaviour
 
         // Transform game object position to mouse position, for visualization purposes 0.01 above ground!
         //transform.position = mousePositionWorld;
-        transform.position = new Vector3(mousePositionWorld.x, mousePositionWorld.y + 0.01f, mousePositionWorld.z);
+        //transform.position = new Vector3(mousePositionWorld.x, mousePositionWorld.y + 0.09f, mousePositionWorld.z);
+        transform.position = new Vector3(mousePositionWorld.x, -0.45f, mousePositionWorld.z);
 
-        Debug.Log("Mouse Clicked at Screen Position: " + mousePositionScreen);
-        Debug.Log("Mouse Clicked at World Position: " + mousePositionWorld);
+        //Debug.Log("Mouse Clicked at Screen Position: " + mousePositionScreen);
+        //Debug.Log("Mouse Clicked at World Position: " + mousePositionWorld);
 
         boolClicked = true;
     }
