@@ -293,6 +293,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         
          
     
+    /*
     public override Action CreateGUI(PointCloud2Msg message, MessageMetadata meta)
     {
         var formatDict = new Dictionary<PointField_Format_Constants, List<string>>();
@@ -315,6 +316,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
             GUILayout.Label($"Channels:\n{formats}");
         };
     }
+    */
 }
 
 

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PointCloud2CustomVisualizerSettings
   m_EditorClassIdentifier: 
   m_TFTrackingSettings:
-    type: 1
+    type: 0
     tfTopic: /tf
   decayTime: 5
   m_ColorModeSetting: 0
