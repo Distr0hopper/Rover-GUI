@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028328, g: 0.22571328, b: 0.3069218, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1102,6 +1102,11 @@ PrefabInstance:
       propertyPath: m_ID
       value: 5180805759586010064-919175823
       objectReference: {fileID: 0}
+    - target: {fileID: 5240387698711624104, guid: 7e8ecfd17cd58c247916864b74797f3f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5315367504069929536, guid: 7e8ecfd17cd58c247916864b74797f3f,
         type: 3}
       propertyPath: m_ID
@@ -1215,8 +1220,14 @@ PrefabInstance:
     - target: {fileID: 8258684177818339835, guid: 7e8ecfd17cd58c247916864b74797f3f,
         type: 3}
       propertyPath: m_Topic
-      value: /velodyne_points
+      value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8258684177818339835, guid: 7e8ecfd17cd58c247916864b74797f3f,
+        type: 3}
+      propertyPath: m_Settings
+      value: 
+      objectReference: {fileID: 11400000, guid: f1d2df8bcd83d4410b03e8a6ddd5eac4,
+        type: 2}
     - target: {fileID: 8281281119776082372, guid: 7e8ecfd17cd58c247916864b74797f3f,
         type: 3}
       propertyPath: m_ID
@@ -1249,7 +1260,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3885009520023495739, guid: 7e8ecfd17cd58c247916864b74797f3f,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1579471345}
+    - targetCorrespondingSourceObject: {fileID: 3885009520023495739, guid: 7e8ecfd17cd58c247916864b74797f3f,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1816782524}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7e8ecfd17cd58c247916864b74797f3f, type: 3}
 --- !u!1 &963194225
@@ -1711,6 +1730,54 @@ Transform:
   - {fileID: 1476777698}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1579471344
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1579471345}
+  - component: {fileID: 1579471346}
+  m_Layer: 0
+  m_Name: Test
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1579471345
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1579471344}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1678022167}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1579471346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1579471344}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b840d1d8c6634a409261069c441f736, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Topic: /velodyne_points
+  m_ID: 1579471346-0
+  decayTime: 5
+  m_ColorModeSetting: 0
 --- !u!1 &1610588465
 GameObject:
   m_ObjectHideFlags: 0
@@ -1882,6 +1949,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 1.25
+--- !u!4 &1678022167 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3885009520023495739, guid: 7e8ecfd17cd58c247916864b74797f3f,
+    type: 3}
+  m_PrefabInstance: {fileID: 919175823}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1697790037
 GameObject:
   m_ObjectHideFlags: 0
@@ -2109,6 +2182,53 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1783856626}
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1816782523
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1816782524}
+  - component: {fileID: 1816782525}
+  m_Layer: 0
+  m_Name: Testobject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &1816782524
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816782523}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1678022167}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1816782525
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1816782523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea10175baf20344acb8ca963be2c8579, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Topic: /velodyne_points
+  m_ID: 
+  m_Settings: {fileID: 11400000, guid: 21ea50c9c9a36e0b69dd663289fc18ec, type: 2}
 --- !u!1 &1877822715 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5609321221556402741, guid: f5dd6b57136fa8c4da43f930316815cb,
