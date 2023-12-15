@@ -5,8 +5,8 @@ using Unity.Robotics.Visualizations;
 using Unity.Robotics.ROSTCPConnector.MessageGeneration;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 using UnityEngine;
-public class PointCloud2CustomVisualizer :  DrawingVisualizerWithSettings<PointCloud2Msg, PointCloud2VisualizerSettings>
+public class PointCloud2CustomVisualizer :  DrawingVisualizerWithSettings<PointCloud2Msg, PointCloud2CustomVisualizerSettings>
 
 {
-    public override string DefaultScriptableObjectPath => "Assets/Scripts/PointCloud2CustomVisualizer/PointCloud2CustomVisualizerSettings";
+    public override string DefaultScriptableObjectPath => "VisualizerSettings/PointCloud2VisualizerSettings";
 }

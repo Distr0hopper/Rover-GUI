@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c27796b0286f0a5408b792ed2955dd50, type: 3}
-  m_Name: PointCloud2VisualizerSettings
+  m_Name: PointCloud2CustomVisualizerSettings
   m_EditorClassIdentifier: 
   m_TFTrackingSettings:
     type: 1
