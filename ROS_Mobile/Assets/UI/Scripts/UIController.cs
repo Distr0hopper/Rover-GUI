@@ -53,6 +53,8 @@ namespace myUIController
         [SerializeField] public RenderTexture mainViewTexture;
         [SerializeField] public RenderTexture secondViewTexture;
         
+        CameraController cameraController;
+        
 
         // Event is triggered when Button is Clicked
         public static event Action OnStartDriving;
@@ -60,17 +62,8 @@ namespace myUIController
 
         void Start()
         {
-            foreach (var camera in Camera.allCameras)
-            {
-                if (camera.name == "Main Camera")
-                {
-                    mainCamera = camera;
-                } else if (camera.name == "Second Camera")
-                {
-                    secondCamera = camera;
-                }
-            }
-            
+            cameraController = GetComponent<CameraController>();
+          
             // Get the elements from the UI
             var root = GetComponent<UIDocument>().rootVisualElement;
             mainView = root.Q<VisualElement>("MainView");
@@ -285,7 +278,7 @@ namespace myUIController
             UpdateBackgroundImages();
 
             // Swap camera tags
-            SwapCameraTags();
+            cameraController.SwapCameraTags(isMainActive);
         }
 
         private void SwapTextures()
@@ -308,19 +301,7 @@ namespace myUIController
             secondView.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(secondViewTexture));
         }
 
-        private void SwapCameraTags()
-        {
-            if (isMainActive)
-            {
-                mainCamera.tag = "MainCamera";
-                secondCamera.tag = "SecondCamera";
-            }
-            else
-            {
-                mainCamera.tag = "SecondCamera";
-                secondCamera.tag = "MainCamera";
-            }
-        }
+     
 
 
         /*

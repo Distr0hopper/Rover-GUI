@@ -18,12 +18,17 @@ public class CameraController : MonoBehaviour
     private Vector2 m_JoystickPointerDownPosition;
     private Vector2 m_JoystickDelta; // Between -1 and 1
     
-    public string pointCloudObjectName = "myPointCloud";
+    [FormerlySerializedAs("pointCloudObjectName")] public string followingObject = "myPointCloud";
     private Transform target = null;
-    public Vector3 offset;
+    [FormerlySerializedAs("offset")] public Vector3 mainCamOffset;
+    public Vector3 secondCamOffset;
     private bool hasFoundTarget; // Flag to track if the target has been found
+    private bool _isMainViewActive = true;
     
-    private Camera _camera;
+  
+    private Camera activeMainUICamera { get; set; }
+    private Camera mainCamera;
+    private Camera secondCamera;
     
     [FormerlySerializedAs("worldObjectPushStrength")] public float rotationSpeed = 1.25f;
 
@@ -37,19 +42,36 @@ public class CameraController : MonoBehaviour
         m_JoystickHandle.RegisterCallback<PointerDownEvent>(OnPointerDown);
         m_JoystickHandle.RegisterCallback<PointerUpEvent>(OnPointerUp);
         m_JoystickHandle.RegisterCallback<PointerMoveEvent>(OnPointerMove);
-        m_inreaseFOV.clicked += () => { ChangeFOV(5); };
-        m_decreaseFOV.clicked += () => { ChangeFOV(-5); };
+        m_decreaseFOV.clicked += () => { ChangeFOV(5); }; // If you press FOV + you want to "zoom in"
+        m_inreaseFOV.clicked += () => { ChangeFOV(-5); }; // If you press FOV - you want to "zoom out"
     }
+
+    void Start()
+    {
+        foreach (var camera in Camera.allCameras)
+        {
+            if (camera.name == "Main Camera")
+            {
+                mainCamera = camera;
+            }
+            else if (camera.name == "Second Camera")
+            {
+                secondCamera = camera;
+            }
+        }
+        activeMainUICamera = mainCamera;
+    }
+
 
     void Update()
     {
-        _camera = Camera.main;
+        //_camera = Camera.main;
         
         // Check if the target is null and hasn't been found yet
         if (target == null && !hasFoundTarget)
         {
             // Attempt to find the "PointCloud" GameObject by name
-            GameObject pointCloudObject = GameObject.Find(pointCloudObjectName);
+            GameObject pointCloudObject = GameObject.Find(followingObject);
 
             if (pointCloudObject != null)
             {
@@ -59,33 +81,49 @@ public class CameraController : MonoBehaviour
         }
         if (target != null)
         {
-            _camera.transform.position = target.position + offset;
+            mainCamera.transform.position = target.position + mainCamOffset;
+            secondCamera.transform.position = target.position + secondCamOffset;
         }
         
         if (inputDetected())
         {
             var rotationY = getJoystickInput(out var rotationQuat);
             // Cameras are rotated differently since Main Camera (Birdseye view) is a orthographic camera and the other camera is perspective
-            if (_camera.name.Equals("Main Camera"))
+            if (_isMainViewActive)
             {
                 Quaternion deltaT = Quaternion.AngleAxis(rotationY, Vector3.forward);
-                _camera.transform.rotation *= deltaT;
+                activeMainUICamera.transform.rotation *= deltaT;
             }
             else
             {
-                _camera.transform.rotation *= rotationQuat;
+                activeMainUICamera.transform.rotation *= rotationQuat;
             }
                 rotateCamera();
         }
         
     }
-
+    
+    public void SwapCameraTags(bool isMainViewActive)
+    {
+        if (isMainViewActive)
+        {
+            activeMainUICamera = mainCamera;
+            _isMainViewActive = true;
+        }
+        else
+        {
+            _isMainViewActive = false;
+            activeMainUICamera = secondCamera;
+        }
+    }
+    
+    
     private void rotateCamera()
     {
-        Vector3 currentRotation = _camera.transform.eulerAngles;
+        Vector3 currentRotation = activeMainUICamera.transform.eulerAngles;
         // Set the z euler angle of transformation to 0
         currentRotation.z = 0; // Lock the Z-axis rotation
-        _camera.transform.eulerAngles = currentRotation;
+        activeMainUICamera.transform.eulerAngles = currentRotation;
     }
 
     private float getJoystickInput(out Quaternion rotationQuat)
@@ -105,16 +143,15 @@ public class CameraController : MonoBehaviour
 
     void ChangeFOV(int number)
     {
-        // Birdseye Camera is Main Camera, if its Birdseye just change the y position since its a orthographic camera without FOV. Else change the FOV from perspective camera
-        if (_camera.name.Equals("Main Camera"))
+        // Main Camera is orthographic, so it has no FOV. Therefore change the height (y) of the camera
+        if (_isMainViewActive)
         {
             float numberDouble = number < 0 ? -0.5f : 0.5f;
-            offset.y += numberDouble;
-            //_camera.transform.position =  new Vector3(_camera.transform.position.x, _camera.transform.position.y + number, _camera.transform.position.z);
+            mainCamOffset.y += numberDouble;
         }
         else
         {
-            _camera.fieldOfView += number;
+            secondCamera.fieldOfView += number;
         }
     }
 
