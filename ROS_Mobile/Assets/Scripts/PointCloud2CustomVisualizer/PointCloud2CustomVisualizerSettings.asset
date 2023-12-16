@@ -15,5 +15,5 @@ MonoBehaviour:
   m_TFTrackingSettings:
     type: 0
     tfTopic: /tf
-  decayTime: 5
   m_ColorModeSetting: 0
+  decayTime: 2

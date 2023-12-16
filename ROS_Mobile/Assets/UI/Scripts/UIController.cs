@@ -38,6 +38,7 @@ namespace myUIController
         private Button switchViewButton;
 
 
+
         #endregion
 
         private Label speedLabel;
@@ -70,8 +71,6 @@ namespace myUIController
                 }
             }
             
-           
-            
             // Get the elements from the UI
             var root = GetComponent<UIDocument>().rootVisualElement;
             mainView = root.Q<VisualElement>("MainView");
@@ -90,6 +89,7 @@ namespace myUIController
             manualDrivePanel = root.Q<VisualElement>("ManualDrivePanel");
             autoDrivePanel = root.Q<VisualElement>("AutoDrivePanel");
             switchViewButton = root.Q<Button>("switchView");
+          
             
             
             // Click on mainview, screenpoint is converted to worldpoint
@@ -197,7 +197,7 @@ namespace myUIController
                 //Debug.DrawLine(ray.origin, ray.GetPoint(enter), Color.green, 5.0f);
 
                 // Set the world coordinates in the robot model
-                RobotModel.Instance.SetWorldPosition(worldPosition);
+                Robot.Instance.SetWorldPosition(worldPosition);
             }
             else
             {
@@ -221,41 +221,41 @@ namespace myUIController
             UnityEngine.Debug.Log("height: " + secondView.resolvedStyle.height + "\n width: " + secondView.resolvedStyle.width);
             if (clickedButton == forwardButton)
             {
-                RobotModel.Instance.Direction = RobotModel.DIRECTIONS.forward;
+                Robot.Instance.Direction = Robot.DIRECTIONS.forward;
             }
             else if (clickedButton == backwardButton)
             {
-                RobotModel.Instance.Direction = RobotModel.DIRECTIONS.backward;
+                Robot.Instance.Direction = Robot.DIRECTIONS.backward;
             }
             else if (clickedButton == leftButton)
             {
-                RobotModel.Instance.Direction = RobotModel.DIRECTIONS.left;
+                Robot.Instance.Direction = Robot.DIRECTIONS.left;
             }
             else if (clickedButton == rightButton)
             {
-                RobotModel.Instance.Direction = RobotModel.DIRECTIONS.right;
+                Robot.Instance.Direction = Robot.DIRECTIONS.right;
             }
             else if (clickedButton == stopButton)
             {
-                RobotModel.Instance.Direction = RobotModel.DIRECTIONS.stop;
+                Robot.Instance.Direction = Robot.DIRECTIONS.stop;
             }
         }
 
         private void incrementSpeed()
         {
-            RobotModel.Instance.incrementSpeed();
+            Robot.Instance.incrementSpeed();
             updateSpeedLabelInView();
         }
         
         private void decrementSpeed()
         {
-            RobotModel.Instance.decrementSpeed();
+            Robot.Instance.decrementSpeed();
           updateSpeedLabelInView();
         }
         
         private void updateSpeedLabelInView()
         {
-            speedLabel.text = RobotModel.Instance.Speed.ToString(); // Update the speed label in the UI
+            speedLabel.text = Robot.Instance.Speed.ToString(); // Update the speed label in the UI
         }
 
         private void setManualDriveMode()

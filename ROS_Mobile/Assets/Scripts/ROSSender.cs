@@ -44,9 +44,9 @@ public class ROSSender : MonoBehaviour
     
     private void sendPointToDrive()
     {
-        Debug.Log(RobotModel.Instance.GetHashCode());
+        Debug.Log(Robot.Instance.GetHashCode());
         // Get the coordinates from Model
-        Vector3 worldCoordinates = RobotModel.Instance.getWorldCoordinates();
+        Vector3 worldCoordinates = Robot.Instance.getWorldCoordinates();
         var vector3Message = new PointMsg
         {
             x = worldCoordinates.x, // Extract the X coordinate from the GameObject
@@ -66,17 +66,17 @@ public class ROSSender : MonoBehaviour
     
     private void sendManualStearingCommand()
     {
-        Debug.Log("ROSSender: " + RobotModel.Instance.Direction);
+        Debug.Log("ROSSender: " + Robot.Instance.Direction);
         Move_commandMsg moveCommandMsg = new Move_commandMsg();
         moveCommandMsg.setSpeed = false;
-        if (RobotModel.Instance.Direction == 0)
+        if (Robot.Instance.Direction == 0)
         {
             moveCommandMsg.stop = true;
         } else moveCommandMsg.stop = false;
 
-        Debug.Log("Speed: " + RobotModel.Instance.Speed);
-        moveCommandMsg.direction = (sbyte)RobotModel.Instance.Direction;
-        moveCommandMsg.duration = new DurationMsg(RobotModel.Instance.Speed);
+        Debug.Log("Speed: " + Robot.Instance.Speed);
+        moveCommandMsg.direction = (sbyte)Robot.Instance.Direction;
+        moveCommandMsg.duration = new DurationMsg(Robot.Instance.Speed);
         m_Ros.Publish(stear_TopicName, moveCommandMsg);
         orientationX = currentX;
         orientationY = currentY;

@@ -6,17 +6,17 @@ using UnityEngine;
 namespace Model
 {
    
-    public class RobotModel
+    public class Robot
     {
         // Singleton of RobotModel
-        private static RobotModel _instance;
-        public static RobotModel Instance
+        private static Robot _instance;
+        public static Robot Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    _instance = new RobotModel();
+                    _instance = new Robot();
                 }
                 return _instance;
             }

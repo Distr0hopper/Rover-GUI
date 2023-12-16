@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RosMessageTypes.Sensor;
 using Unity.Robotics.Visualizations;
-using Unity.Robotics.ROSTCPConnector.MessageGeneration;
+using Model;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 using UnityEngine;
 
@@ -17,13 +17,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         CombinedRGB,
     }
     
-    /*
-     * My Class Variables
-     */
-    private List<MyTimedPoint> timedPoints = new List<MyTimedPoint>();
-    
-    [SerializeField]
-    public float decayTime = 5.0f;
+   
 
     [HideInInspector, SerializeField]
     ColorMode m_ColorModeSetting;
@@ -68,6 +62,14 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
     public bool UseSizeChannel { get => m_UseSizeChannel; set => m_UseSizeChannel = value; }
     bool m_UseSizeChannel = true;
 
+    /*
+     * My Class Variables
+     */
+    private List<TimedPoint> timedPoints = new List<TimedPoint>();
+    
+    [SerializeField]
+    public float decayTime = 5.0f;
+    
      public override void Draw(Drawing3d drawing, PointCloud2Msg message, MessageMetadata meta)
         {
             // Remove old points
@@ -172,126 +174,16 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
                 radius = m_Size;
             } 
 
-                MyTimedPoint timedPoint = new MyTimedPoint(unityPoint, color, radius, Time.time);
+                TimedPoint timedPoint = new TimedPoint(unityPoint, color, radius, Time.time);
                 timedPoints.Add(timedPoint);
         }
 
-        foreach (MyTimedPoint point in timedPoints)
+        foreach (TimedPoint point in timedPoints)
         {
             pointCloud.AddPoint(point.unityPoint, point.color, point.radius);
         }
     }
      
-    /*
-    public override void Draw(Drawing3d drawing, PointCloud2Msg message, MessageMetadata meta)
-    {
-        drawing.SetTFTrackingSettings(m_TFTrackingSettings, message.header);
-        
-        TFFrame currentTFFrame = TFSystem.instance.GetTransform(message.header);
-        Quaternion currentTransform = currentTFFrame.rotation;
-       
-        drawing.SetTFTrackingSettings(m_TFTrackingSettings, message.header);
-        //var pointCloud = drawing.AddPointCloud((int)(message.data.Length / message.point_step));
-        var pointCloud = drawing.AddPointCloud((int)(message.data.Length / message.point_step), currentTransform,null, decayTime);
-        
-        Channels = message.fields.Select(field => field.name).ToArray();
-
-        Dictionary<string, int> channelToIdx = new Dictionary<string, int>();
-        for (int i = 0; i < message.fields.Length; i++)
-        {
-            channelToIdx.Add(message.fields[i].name, i);
-        }
-
-        //TFFrame frame = TFSystem.instance.GetTransform(message.header);
-
-        Func<int, Color> colorGenerator = (int iPointStep) => Color.white;
-
-        if (m_UseRgbChannel)
-        {
-            switch (ColorModeSetting)
-            {
-                case ColorMode.HSV:
-                    if (m_HueChannel.Length > 0)
-                    {
-                        int hueChannelOffset = (int)message.fields[channelToIdx[m_HueChannel]].offset;
-                        colorGenerator = (int iPointStep) =>
-                        {
-                            //int colC = BitConverter.ToInt16(message.data, (iPointStep + hueChannelOffset));
-                            var colC = BitConverter.ToSingle(message.data, (iPointStep + hueChannelOffset));
-                           // 0.5f to get half of the color wheel (because otherwise red is at the beginning and end of the color wheel)
-                            return Color.HSVToRGB(0.5f*Mathf.InverseLerp(m_HueRange[0], m_HueRange[1], colC), 1, 1);
-                        };
-                    }
-                    break;
-                case ColorMode.SeparateRGB:
-                    if (m_RChannel.Length > 0 && m_GChannel.Length > 0 && m_BChannel.Length > 0)
-                    {
-                        int rChannelOffset = (int)message.fields[channelToIdx[m_RChannel]].offset;
-                        int gChannelOffset = (int)message.fields[channelToIdx[m_GChannel]].offset;
-                        int bChannelOffset = (int)message.fields[channelToIdx[m_BChannel]].offset;
-                        colorGenerator = (int iPointStep) =>
-                        {
-                            var colR = Mathf.InverseLerp(m_RRange[0], m_RRange[1], BitConverter.ToSingle(message.data, iPointStep + rChannelOffset));
-                            var colG = Mathf.InverseLerp(m_GRange[0], m_GRange[1], BitConverter.ToSingle(message.data, iPointStep + gChannelOffset));
-                            var colB = Mathf.InverseLerp(m_BRange[0], m_BRange[1], BitConverter.ToSingle(message.data, iPointStep + bChannelOffset));
-                            return new Color(colR, colG, colB, 1);
-                        };
-                    }
-                    break;
-                case ColorMode.CombinedRGB:
-                    if (m_RgbChannel.Length > 0)
-                    {
-                        int rgbChannelOffset = (int)message.fields[channelToIdx[m_RgbChannel]].offset;
-                        colorGenerator = (int iPointStep) => new Color32
-                        (
-                            message.data[iPointStep + rgbChannelOffset + 2],
-                            message.data[iPointStep + rgbChannelOffset + 1],
-                            message.data[iPointStep + rgbChannelOffset],
-                            255
-                        );
-                    }
-                    break;
-            }
-        }
-
-        int xChannelOffset = (int)message.fields[channelToIdx[m_XChannel]].offset;
-        int yChannelOffset = (int)message.fields[channelToIdx[m_YChannel]].offset;
-        int zChannelOffset = (int)message.fields[channelToIdx[m_ZChannel]].offset;
-        int sizeChannelOffset = 0;
-        bool useSizeChannel = m_UseSizeChannel && m_SizeChannel != "";
-        if (useSizeChannel)
-            sizeChannelOffset = (int)message.fields[channelToIdx[m_SizeChannel]].offset;
-        int maxI = message.data.Length / (int)message.point_step;
-        for (int i = 0; i < maxI; i++)
-        {
-            int iPointStep = i * (int)message.point_step;
-            var x = BitConverter.ToSingle(message.data, iPointStep + xChannelOffset);
-            var y = BitConverter.ToSingle(message.data, iPointStep + yChannelOffset);
-            var z = BitConverter.ToSingle(message.data, iPointStep + zChannelOffset);
-            Vector3<FLU> rosPoint = new Vector3<FLU>(x, y, z);
-            Vector3 unityPoint = rosPoint.toUnity;
-
-            Color color = colorGenerator(iPointStep);
-
-            float radius;
-            if (useSizeChannel)
-            {
-                var size = BitConverter.ToSingle(message.data, iPointStep + sizeChannelOffset);
-                radius = Mathf.InverseLerp(m_SizeRange[0], m_SizeRange[1], size) * m_Size;
-            }
-            else
-            {
-                radius = m_Size;
-            }
-            pointCloud.AddPoint(unityPoint, color, radius);
-        }
-    }
-    */
-
-    
-    
-        
-         
     
     /*
     public override Action CreateGUI(PointCloud2Msg message, MessageMetadata meta)
@@ -320,19 +212,3 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
 }
 
 
-public class MyTimedPoint
-{
-    public Vector3 unityPoint;
-    public Color color;
-    public float radius;
-    public float timestamp;
-
-    public MyTimedPoint(Vector3 unityPoint, Color color, float radius, float timestamp)
-    {
-        this.unityPoint = unityPoint;
-        this.color = color;
-        this.radius = radius;
-        this.timestamp = timestamp;
-    }
-
-}
