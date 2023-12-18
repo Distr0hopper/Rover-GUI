@@ -1,11 +1,15 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using RosMessageTypes.Sensor;
 using Unity.Robotics.Visualizations;
 using Model;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
+using Object = System.Object;
 
 [CreateAssetMenu(fileName = "PointCloud2CustomVisualizerSettings", menuName = "Robotics/Sensor Visualizers/MyPointCloud2", order = 1)]
 public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<PointCloud2Msg>
@@ -16,8 +20,6 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         SeparateRGB,
         CombinedRGB,
     }
-    
-   
 
     [HideInInspector, SerializeField]
     ColorMode m_ColorModeSetting;
@@ -65,24 +67,33 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
     /*
      * My Class Variables
      */
-    private List<TimedPoint> timedPoints = new List<TimedPoint>();
+    private List<MyPointCloudDrawing> pointCloudList = new List<MyPointCloudDrawing>();
     
     [SerializeField]
     public float decayTime = 5.0f;
     
      public override void Draw(Drawing3d drawing, PointCloud2Msg message, MessageMetadata meta)
-        {
+     {
+            //Drawing3d drawing3d = Drawing3d.Create(decayTime,null);
             // Remove old points
             float currentTime = Time.time;
-           timedPoints.RemoveAll(timedPoint => currentTime - timedPoint.timestamp > decayTime);
+          // pointCloudList.RemoveAll(pointCloud => currentTime - pointCloud.timestamp > decayTime);
            
            TFFrame currentTFFrame = TFSystem.instance.GetTransform(message.header);
            
            Quaternion currentRotation = currentTFFrame.rotation;
            
            drawing.SetTFTrackingSettings(m_TFTrackingSettings, message.header);
-           var pointCloud = drawing.AddPointCloud((int)(message.data.Length / message.point_step));
-    
+           //var pointCloud = drawing.AddPointCloud((int)(message.data.Length / message.point_step));
+            
+
+            //var pointCloud = drawing.AddPointCloud((int)(message.data.Length / message.point_step));
+            PointCloudDrawing pointCloud = PointCloudDrawing.Create(drawing.gameObject, (int)(message.data.Length / message.point_step));
+            //pointCloud.transform.parent = drawing3d.transform;
+            //drawing.gameObject.AddComponent<MyPointCloudDrawing>();
+            
+            MyPointCloudDrawing myPointCloudDrawing = new MyPointCloudDrawing(pointCloud, currentTime, decayTime);
+            pointCloudList.Add(myPointCloudDrawing);
             Channels = message.fields.Select(field => field.name).ToArray();
     
             Dictionary<string, int> channelToIdx = new Dictionary<string, int>();
@@ -149,7 +160,8 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
             if (useSizeChannel)
                 sizeChannelOffset = (int)message.fields[channelToIdx[m_SizeChannel]].offset;
             int maxI = message.data.Length / (int)message.point_step;
-            for (int i = 0; i < maxI; i++)
+            
+            for (int i = 0; i < maxI; i += 1)
             {
                 int iPointStep = i * (int)message.point_step;
                 var x = BitConverter.ToSingle(message.data, iPointStep + xChannelOffset);
@@ -170,19 +182,71 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
                 }
                 else
   
+                {
+                    radius = m_Size;
+                } 
+                myPointCloudDrawing.pointCloudDrawing.AddPoint(unityPoint, color, radius);
+        }
+
+            
+            for (int i = 0; i < pointCloudList.Count - 1; i++)
             {
-                radius = m_Size;
-            } 
+                var current = pointCloudList[i];
+                if (currentTime - current.timestamp > decayTime)
+                {
+                    //Get the corresponding game object from MyPointCloudDrawing.pointCloudDrawing object and destroy it
+                    //mypointCloud.pointCloudDrawing.Clear();
+                    //mypointCloud.pointCloudDrawing.m_Mesh.Clear();
 
-                TimedPoint timedPoint = new TimedPoint(unityPoint, color, radius, Time.time);
-                timedPoints.Add(timedPoint);
-        }
+                    current.pointCloudDrawing.gameObject.SetActive(false);
 
-        foreach (TimedPoint point in timedPoints)
-        {
-            pointCloud.AddPoint(point.unityPoint, point.color, point.radius);
-        }
-    }
+                    if (!current.pointCloudDrawing.gameObject.activeSelf)
+                    {
+                        // Destroy(mypointCloud.pointCloudDrawing.gameObject);
+                        if (current.pointCloudDrawing != null)
+                        {
+                            Destroy(current.pointCloudDrawing.gameObject);
+                            current.pointCloudDrawing.m_Mesh.Clear();
+                            Destroy(current.pointCloudDrawing.gameObject.GetComponent<MeshFilter>());
+                            Destroy(current.pointCloudDrawing.gameObject.GetComponent<MeshFilter>().mesh);
+                            Destroy(current.pointCloudDrawing);
+                            
+                            pointCloudList.RemoveAt(i);
+                        }
+                        
+                    }
+                }
+            }
+            
+            
+            /*
+            foreach (MyPointCloudDrawing mypointCloud in pointCloudList)
+            {
+                if (currentTime - mypointCloud.timestamp > decayTime)
+                {
+                 //Get the corresponding game object from MyPointCloudDrawing.pointCloudDrawing object and destroy it
+                 //mypointCloud.pointCloudDrawing.Clear();
+                 //mypointCloud.pointCloudDrawing.m_Mesh.Clear();
+                 try
+                 {
+                 mypointCloud.pointCloudDrawing.gameObject.SetActive(false);
+                 }
+                 catch (Exception e)
+                 {
+                    pointCloudList.RemoveAt(0);
+                 }
+                 if (!mypointCloud.pointCloudDrawing.gameObject.activeSelf)
+                 {
+                    // Destroy(mypointCloud.pointCloudDrawing.gameObject);
+                    if(mypointCloud.pointCloudDrawing != null)
+                     Destroy(mypointCloud.pointCloudDrawing);
+                 }
+                }
+            }
+
+            pointCloudList.RemoveAll(pointCloud => !pointCloud.pointCloudDrawing.isActiveAndEnabled);
+            */
+     }
      
     
     /*
@@ -210,5 +274,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
     }
     */
 }
+
+
 
 

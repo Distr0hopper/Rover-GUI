@@ -16,4 +16,4 @@ MonoBehaviour:
     type: 0
     tfTopic: /tf
   m_ColorModeSetting: 0
-  decayTime: 5
+  decayTime: 2
