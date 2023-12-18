@@ -10,8 +10,7 @@ namespace myUIController
 
     public class UIController : MonoBehaviour
     {
-        #region VisualElements
-
+        #region UIElements
         private VisualElement mainView; //View which shows RenderTexture from Camera 
 
         private VisualElement secondView; //View which shows Top-Down view of the map
@@ -20,10 +19,8 @@ namespace myUIController
         
         private VisualElement autoDrivePanel;
         
-
-        #endregion
-
-        #region Buttons
+        
+        
 
         private Button driveButton;
         private Button stopButton;
@@ -38,32 +35,44 @@ namespace myUIController
         private Button switchViewButton;
 
 
+        private Label speedLabel;
 
         #endregion
 
-        private Label speedLabel;
+        #region Cameras
+        
         private Camera mainCamera;
         private Camera secondCamera;
         
-
-        private Vector3 clickPosition;
-        private bool isMainActive = true;
+        #endregion
+        
+        #region Public Properties
 
         [SerializeField] public GameObject marker;
         [SerializeField] public RenderTexture mainViewTexture;
         [SerializeField] public RenderTexture secondViewTexture;
         
-        CameraController cameraController;
+        #endregion
+
+        #region Private Properties
+
+        private Robot robot;
+        private CameraController cameraController;
+        private Vector3 clickPosition;
+        private bool isMainActive = true;
         
+        #endregion
+
+        #region Events
 
         // Event is triggered when Button is Clicked
         public static event Action OnStartDriving;
         public static event Action OnManualSteering;
 
+        #endregion
+
         void Start()
         {
-            cameraController = GetComponent<CameraController>();
-          
             // Get the elements from the UI
             var root = GetComponent<UIDocument>().rootVisualElement;
             mainView = root.Q<VisualElement>("MainView");
@@ -83,7 +92,6 @@ namespace myUIController
             autoDrivePanel = root.Q<VisualElement>("AutoDrivePanel");
             switchViewButton = root.Q<Button>("switchView");
           
-            
             
             // Click on mainview, screenpoint is converted to worldpoint
             mainView.RegisterCallback<ClickEvent>(screenToWorld);
@@ -146,6 +154,16 @@ namespace myUIController
             mainViewTexture = RenderTextureResize.Resize(mainViewTexture, mainView.resolvedStyle.width, mainView.resolvedStyle.height);
             secondViewTexture = RenderTextureResize.Resize(secondViewTexture, secondView.resolvedStyle.width, secondView.resolvedStyle.height);
         }
+        
+        public void SetRobot(Robot robot)
+        {
+            this.robot = robot;
+        }
+        
+        public void SetCameraController(CameraController cameraController)
+        {
+            this.cameraController = cameraController;
+        }
 
         /*
          * Code adapted from:
@@ -190,7 +208,7 @@ namespace myUIController
                 //Debug.DrawLine(ray.origin, ray.GetPoint(enter), Color.green, 5.0f);
 
                 // Set the world coordinates in the robot model
-                Robot.Instance.SetWorldPosition(worldPosition);
+                robot.setGoalInWorldPos(worldPosition);
             }
             else
             {
@@ -214,41 +232,41 @@ namespace myUIController
             UnityEngine.Debug.Log("height: " + secondView.resolvedStyle.height + "\n width: " + secondView.resolvedStyle.width);
             if (clickedButton == forwardButton)
             {
-                Robot.Instance.Direction = Robot.DIRECTIONS.forward;
+                robot.Direction = Robot.DIRECTIONS.forward;
             }
             else if (clickedButton == backwardButton)
             {
-                Robot.Instance.Direction = Robot.DIRECTIONS.backward;
+                robot.Direction = Robot.DIRECTIONS.backward;
             }
             else if (clickedButton == leftButton)
             {
-                Robot.Instance.Direction = Robot.DIRECTIONS.left;
+                robot.Direction = Robot.DIRECTIONS.left;
             }
             else if (clickedButton == rightButton)
             {
-                Robot.Instance.Direction = Robot.DIRECTIONS.right;
+                robot.Direction = Robot.DIRECTIONS.right;
             }
             else if (clickedButton == stopButton)
             {
-                Robot.Instance.Direction = Robot.DIRECTIONS.stop;
+                robot.Direction = Robot.DIRECTIONS.stop;
             }
         }
 
         private void incrementSpeed()
         {
-            Robot.Instance.incrementSpeed();
+            robot.incrementSpeed();
             updateSpeedLabelInView();
         }
         
         private void decrementSpeed()
         {
-            Robot.Instance.decrementSpeed();
+            robot.decrementSpeed();
           updateSpeedLabelInView();
         }
         
         private void updateSpeedLabelInView()
         {
-            speedLabel.text = Robot.Instance.Speed.ToString(); // Update the speed label in the UI
+            speedLabel.text = robot.Speed.ToString(); // Update the speed label in the UI
         }
 
         private void setManualDriveMode()
@@ -278,12 +296,13 @@ namespace myUIController
             UpdateBackgroundImages();
 
             // Swap camera tags
-            cameraController.SwapCameraTags(isMainActive);
+            cameraController.SwapCamera(isMainActive);
         }
 
         private void SwapTextures()
         {
             (mainViewTexture, secondViewTexture) = (secondViewTexture, mainViewTexture);
+            //The same as the following, just to show what a big programmer cock i have 
             //RenderTexture temp = mainViewTexture;
             //mainViewTexture = secondViewTexture;
             //secondViewTexture = temp;
@@ -300,57 +319,7 @@ namespace myUIController
             mainView.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(mainViewTexture));
             secondView.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(secondViewTexture));
         }
-
-     
-
-
-        /*
-        private void switchView()
-        {
-            if (isMainActive)
-            {
-                SwitchToSecondView();
-            }
-            else
-            {
-                SwitchToMainView();
-            }
-            isMainActive = !isMainActive;
-        }
-
-        private void SwitchToSecondView()
-        {
-            ResizeRenderTextures(secondView.resolvedStyle.width, secondView.resolvedStyle.height, mainView.resolvedStyle.width, mainView.resolvedStyle.height);
-            SwapBackgroundImages(secondViewTexture, mainViewTexture);
-            SwapCameraTags("SecondCamera", "MainCamera");
-        }
-
-        private void SwitchToMainView()
-        {
-            ResizeRenderTextures(mainView.resolvedStyle.width, mainView.resolvedStyle.height, secondView.resolvedStyle.width, secondView.resolvedStyle.height);
-            SwapBackgroundImages(mainViewTexture, secondViewTexture);
-            SwapCameraTags("MainCamera", "SecondCamera");
-        }
-
-        private void ResizeRenderTextures(float mainWidth, float mainHeight, float secondWidth, float secondHeight)
-        {
-            mainViewTexture = RenderTextureResize.Resize(mainViewTexture, mainWidth, mainHeight);
-            secondViewTexture = RenderTextureResize.Resize(secondViewTexture, secondWidth, secondHeight);
-        }
-
-        private void SwapBackgroundImages(RenderTexture mainTexture, RenderTexture secondTexture)
-        {
-            mainView.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(mainTexture));
-            secondView.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(secondTexture));
-        }
-
-        private void SwapCameraTags(string mainTag, string secondTag)
-        {
-            mainCamera.tag = mainTag;
-            secondCamera.tag = secondTag;
-        }
-
-*/
+        
     }
     
 }

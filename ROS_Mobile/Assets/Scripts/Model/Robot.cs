@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Model
@@ -8,7 +5,8 @@ namespace Model
    
     public class Robot
     {
-        // Singleton of RobotModel
+        /*
+        // Singleton Pattern for  RobotModel
         private static Robot _instance;
         public static Robot Instance
         {
@@ -21,6 +19,7 @@ namespace Model
                 return _instance;
             }
         }
+        */
         public int Speed { get; private set; } = 5;
 
         public enum DIRECTIONS
@@ -33,7 +32,9 @@ namespace Model
         }
 
         public DIRECTIONS Direction { get; set; }
-        public Vector3 WorldPosition { get; private set; }
+        public Vector3 goalInWorldPos { get; private set; }
+        
+        public Vector3 currentPos { get; set; }
 
         public void incrementSpeed()
         {
@@ -45,14 +46,14 @@ namespace Model
             if (Speed > 1) Speed--;
         }
 
-        public void SetWorldPosition(Vector3 position)
+        public void setGoalInWorldPos(Vector3 position)
         {
-            WorldPosition = position;
+            goalInWorldPos = position;
         }
 
-        public Vector3 getWorldCoordinates()
+        public Vector3 getGoalInWorldPos()
         {
-            return WorldPosition;
+            return goalInWorldPos;
         }
 
     }

@@ -10,18 +10,13 @@ namespace Model
     {
         public float timestamp;
         public PointCloudDrawing pointCloudDrawing;
-        private float decayTime = 0.0f;
 
-        Coroutine m_decayTimeCoroutine = null;
 
-        public MyPointCloudDrawing(PointCloudDrawing pointCloudDrawing, float timestamp, float decayTime)
+        public MyPointCloudDrawing(PointCloudDrawing pointCloudDrawing, float timestamp)
         {
             this.pointCloudDrawing = pointCloudDrawing;
             this.timestamp = timestamp;
-            this.decayTime = decayTime;
         }
-
-
-
+        
     }
 }

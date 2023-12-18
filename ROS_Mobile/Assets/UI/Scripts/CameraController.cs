@@ -2,6 +2,7 @@ using myUIController;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
+using Model;
 
 public class CameraController : MonoBehaviour
 {
@@ -18,17 +19,17 @@ public class CameraController : MonoBehaviour
     private Vector2 m_JoystickPointerDownPosition;
     private Vector2 m_JoystickDelta; // Between -1 and 1
     
-    [FormerlySerializedAs("pointCloudObjectName")] public string followingObject = "myPointCloud";
-    private Transform target = null;
+    [FormerlySerializedAs("pointCloudObjectName")] public string followingObject = "Drawing";
     [FormerlySerializedAs("offset")] public Vector3 mainCamOffset;
     public Vector3 secondCamOffset;
-    private bool hasFoundTarget; // Flag to track if the target has been found
     private bool _isMainViewActive = true;
     
   
     private Camera activeMainUICamera { get; set; }
     private Camera mainCamera;
     private Camera secondCamera;
+    
+    private Robot robot;
     
     [FormerlySerializedAs("worldObjectPushStrength")] public float rotationSpeed = 1.25f;
 
@@ -65,25 +66,8 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
-        //_camera = Camera.main;
-        
-        // Check if the target is null and hasn't been found yet
-        if (target == null && !hasFoundTarget)
-        {
-            // Attempt to find the "PointCloud" GameObject by name
-            GameObject pointCloudObject = GameObject.Find(followingObject);
-
-            if (pointCloudObject != null)
-            {
-                target = pointCloudObject.transform;
-                hasFoundTarget = true; // Set the flag to true once the target is found
-            }
-        }
-        if (target != null)
-        {
-            mainCamera.transform.position = target.position + mainCamOffset;
-            secondCamera.transform.position = target.position + secondCamOffset;
-        }
+        mainCamera.transform.position = robot.currentPos + mainCamOffset;
+        secondCamera.transform.position = robot.currentPos + secondCamOffset;
         
         if (inputDetected())
         {
@@ -103,7 +87,12 @@ public class CameraController : MonoBehaviour
         
     }
     
-    public void SwapCameraTags(bool isMainViewActive)
+    public void SetRobot(Robot robot)
+    {
+        this.robot = robot;
+    }
+    
+    public void SwapCamera(bool isMainViewActive)
     {
         if (isMainViewActive)
         {
