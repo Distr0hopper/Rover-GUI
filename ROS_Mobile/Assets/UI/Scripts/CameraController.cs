@@ -19,13 +19,12 @@ public class CameraController : MonoBehaviour
     private Vector2 m_JoystickPointerDownPosition;
     private Vector2 m_JoystickDelta; // Between -1 and 1
     
-    [FormerlySerializedAs("pointCloudObjectName")] public string followingObject = "Drawing";
-    [FormerlySerializedAs("offset")] public Vector3 mainCamOffset;
-    public Vector3 secondCamOffset;
+    [SerializeField] private Vector3 mainCamOffset;
+    [SerializeField] private Vector3 secondCamOffset;
     private bool _isMainViewActive = true;
     
   
-    private Camera activeMainUICamera { get; set; }
+    public Camera activeMainUICamera { get; private set; }
     private Camera mainCamera;
     private Camera secondCamera;
     

@@ -181,7 +181,7 @@ namespace myUIController
                     new Vector3(clickPosition.x,
                         1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
 
-            Ray ray = Camera.main.ViewportPointToRay(viewportPoint);
+            Ray ray = cameraController.activeMainUICamera.ViewportPointToRay(viewportPoint);
             /*
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
