@@ -15,30 +15,16 @@ public class ROSSender : MonoBehaviour
 
     private string stear_TopicName = "/man_control";
 
-    private double orientationX;
-
-    private double orientationY;
-    
-    private double currentX;
-    
-    private double currentY;
-
-    private Robot robot;
+    public Robot robot { private get; set; }
     
     // ROS Connector
-    ROSConnection m_Ros;
+    public ROSConnection m_Ros { private get; set; }
     void Start()
     {
-        // Get ROS connection static instance
-        m_Ros = ROSConnection.GetOrCreateInstance();
         // Register publishers for sending point and move commands
         m_Ros.RegisterPublisher<PoseStampedMsg>(point_TopicName);
         m_Ros.RegisterPublisher<Move_commandMsg>(stear_TopicName);
-        // Subscribe to the current pose of the robot
-        m_Ros.Subscribe<OdometryMsg>("cur_pose", msg => {
-            currentX = msg.pose.pose.position.x;
-            currentY = msg.pose.pose.position.y;
-        });
+
         // Wait for GUI to be clicked
         UIController.OnStartDriving += sendPointToDrive;
         UIController.OnManualSteering += sendManualStearingCommand;
@@ -55,9 +41,9 @@ public class ROSSender : MonoBehaviour
             z = worldCoordinates.z // Extract the Z coordinate from the GameObject
         };
         
-        PoseStampedMsg messageToRos = ROSUtils.pointToPoseMsg(vector3Message, orientationX, orientationY);
-        orientationX = messageToRos.pose.position.x;
-        orientationY = messageToRos.pose.position.y;
+        PoseStampedMsg messageToRos = ROSUtils.pointToPoseMsg(vector3Message, robot.orientationX, robot.orientationY);
+        robot.orientationX = messageToRos.pose.position.x;
+        robot.orientationY = messageToRos.pose.position.y;
         // Vector3 to geometry_message::PoseStamped
         // PoseStamped hat Header (Std_msgs) - Pose (geometry_msgs::Pose)
         Debug.Log(messageToRos);
@@ -79,12 +65,8 @@ public class ROSSender : MonoBehaviour
         moveCommandMsg.direction = (sbyte)robot.Direction;
         moveCommandMsg.duration = new DurationMsg(robot.Speed);
         m_Ros.Publish(stear_TopicName, moveCommandMsg);
-        orientationX = currentX;
-        orientationY = currentY;
+        robot.orientationX = robot.currentX;
+        robot.orientationY = robot.currentY;
     }
     
-    public void SetRobot(Robot robot)
-    {
-        this.robot = robot;
-    }
 }

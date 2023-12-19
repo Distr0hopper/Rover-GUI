@@ -21,20 +21,20 @@ public class CameraController : MonoBehaviour
     
     [SerializeField] private Vector3 mainCamOffset;
     [SerializeField] private Vector3 secondCamOffset;
-    private bool _isMainViewActive = true;
+    [HideInInspector] public UIDocument UIDocument { private get; set; }
     
   
     public Camera activeMainUICamera { get; private set; }
     private Camera mainCamera;
     private Camera secondCamera;
     
-    private Robot robot;
+    public Robot robot { private get; set; }
     
     [FormerlySerializedAs("worldObjectPushStrength")] public float rotationSpeed = 1.25f;
 
     void OnEnable()
     {
-        var root = GetComponent<UIDocument>().rootVisualElement;
+        var root = UIDocument.rootVisualElement;
         m_JoystickBack = root.Q("JoystickBackground");
         m_JoystickHandle = root.Q("Joystick");
         m_inreaseFOV = root.Q<Button>("IncreaseFOV");
@@ -72,7 +72,7 @@ public class CameraController : MonoBehaviour
         {
             var rotationY = getJoystickInput(out var rotationQuat);
             // Cameras are rotated differently since Main Camera (Birdseye view) is a orthographic camera and the other camera is perspective
-            if (_isMainViewActive)
+            if (UIController.isMainActive)
             {
                 Quaternion deltaT = Quaternion.AngleAxis(rotationY, Vector3.forward);
                 activeMainUICamera.transform.rotation *= deltaT;
@@ -86,21 +86,14 @@ public class CameraController : MonoBehaviour
         
     }
     
-    public void SetRobot(Robot robot)
-    {
-        this.robot = robot;
-    }
-    
     public void SwapCamera(bool isMainViewActive)
     {
         if (isMainViewActive)
         {
             activeMainUICamera = mainCamera;
-            _isMainViewActive = true;
         }
         else
         {
-            _isMainViewActive = false;
             activeMainUICamera = secondCamera;
         }
     }
@@ -132,7 +125,7 @@ public class CameraController : MonoBehaviour
     void ChangeFOV(int number)
     {
         // Main Camera is orthographic, so it has no FOV. Therefore change the height (y) of the camera
-        if (_isMainViewActive)
+        if (UIController.isMainActive)
         {
             float numberDouble = number < 0 ? -0.5f : 0.5f;
             mainCamOffset.y += numberDouble;
@@ -170,4 +163,5 @@ public class CameraController : MonoBehaviour
 
     static Vector2 Clamp(Vector2 v, Vector2 min, Vector2 max) =>
         new Vector2(Mathf.Clamp(v.x, min.x, max.x), Mathf.Clamp(v.y, min.y, max.y));
+    
 }

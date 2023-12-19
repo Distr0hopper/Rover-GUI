@@ -51,15 +51,15 @@ namespace myUIController
         [SerializeField] public GameObject marker;
         [SerializeField] public RenderTexture mainViewTexture;
         [SerializeField] public RenderTexture secondViewTexture;
+        public static bool isMainActive = true;
         
         #endregion
 
         #region Private Properties
-
+        [HideInInspector] public UIDocument UIDocument { private get;  set; }
         private Robot robot;
         private CameraController cameraController;
         private Vector3 clickPosition;
-        private bool isMainActive = true;
         
         #endregion
 
@@ -74,7 +74,7 @@ namespace myUIController
         void Start()
         {
             // Get the elements from the UI
-            var root = GetComponent<UIDocument>().rootVisualElement;
+            var root = UIDocument.rootVisualElement;
             mainView = root.Q<VisualElement>("MainView");
             driveButton = root.Q<Button>("bStartDrive");
             stopButton = root.Q<Button>("stopButton");

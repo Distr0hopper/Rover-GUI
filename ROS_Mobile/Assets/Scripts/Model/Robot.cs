@@ -30,6 +30,14 @@ namespace Model
             left = 5,
             right = 6
         }
+        
+        public double orientationX;
+
+        public double orientationY;
+    
+        public double currentX;
+    
+        public double currentY;
 
         public DIRECTIONS Direction { get; set; }
         public Vector3 goalInWorldPos { get; private set; }
