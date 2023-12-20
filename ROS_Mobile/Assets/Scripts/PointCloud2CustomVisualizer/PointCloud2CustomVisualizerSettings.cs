@@ -319,6 +319,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         Destroy(current.pointCloudDrawing.gameObject);
         //Clear Mesh Filter
         current.pointCloudDrawing.m_Mesh.Clear();
+        //current.pointCloudDrawing.Bake();
         //Destroy Mesh and Mesh Filter
         Destroy(current.pointCloudDrawing.gameObject.GetComponent<MeshFilter>());
         Destroy(current.pointCloudDrawing.gameObject.GetComponent<MeshFilter>().mesh);
