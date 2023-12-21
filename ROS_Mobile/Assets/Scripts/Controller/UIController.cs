@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using Model;
-using Unity.Robotics.ROSTCPConnector.MessageGeneration;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Utils;
@@ -12,16 +11,10 @@ namespace myUIController
     {
         #region UIElements
         private VisualElement mainView; //View which shows RenderTexture from Camera 
-
         private VisualElement secondView; //View which shows Top-Down view of the map
-
         private VisualElement manualDrivePanel;
-        
         private VisualElement autoDrivePanel;
         
-        
-        
-
         private Button driveButton;
         private Button stopButton;
         private Button forwardButton;
@@ -33,9 +26,10 @@ namespace myUIController
         private Button autoDriveModeButton;
         private Button manualDriveModeButton;
         private Button switchViewButton;
-
-
+        
         private Label speedLabel;
+
+        private EnumField changeRobotDropdown;
 
         #endregion
 
@@ -52,12 +46,13 @@ namespace myUIController
         [SerializeField] public RenderTexture mainViewTexture;
         [SerializeField] public RenderTexture secondViewTexture;
         public static bool isMainActive = true;
+        public Robot robot { get; set; }
+        
         
         #endregion
 
         #region Private Properties
         [HideInInspector] public UIDocument UIDocument { private get;  set; }
-        private Robot robot;
         private CameraController cameraController;
         private Vector3 clickPosition;
         
@@ -91,7 +86,7 @@ namespace myUIController
             manualDrivePanel = root.Q<VisualElement>("ManualDrivePanel");
             autoDrivePanel = root.Q<VisualElement>("AutoDrivePanel");
             switchViewButton = root.Q<Button>("switchView");
-          
+            changeRobotDropdown = root.Q<EnumField>("RobotChoice");
             
             // Click on mainview, screenpoint is converted to worldpoint
             mainView.RegisterCallback<ClickEvent>(screenToWorld);
@@ -130,9 +125,18 @@ namespace myUIController
             decrementButton.clicked += () => { decrementSpeed(); };
             
             switchViewButton.clicked += () => { switchView(); };
-            
+            changeRobotDropdown.RegisterValueChangedCallback(evt => {OnDropdownValueChanged(evt.newValue); });
+
             StartCoroutine(InitializeAfterLayout());
+            
            
+        }
+        
+        private void OnDropdownValueChanged(Enum newValue)
+        {
+            // Handle the new value here - for example, update a label or print to console
+            Debug.Log("Selected Value: " + newValue);
+            
         }
         
         private IEnumerator InitializeAfterLayout()
@@ -153,11 +157,6 @@ namespace myUIController
         {
             mainViewTexture = RenderTextureResize.Resize(mainViewTexture, mainView.resolvedStyle.width, mainView.resolvedStyle.height);
             secondViewTexture = RenderTextureResize.Resize(secondViewTexture, secondView.resolvedStyle.width, secondView.resolvedStyle.height);
-        }
-        
-        public void SetRobot(Robot robot)
-        {
-            this.robot = robot;
         }
         
         public void SetCameraController(CameraController cameraController)

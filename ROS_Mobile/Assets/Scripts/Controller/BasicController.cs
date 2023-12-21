@@ -11,20 +11,44 @@ using UnityEngine.UIElements;
 
 public class BasicController : MonoBehaviour
 {
+    #region Serialized Fields
+
     [SerializeField] public string followTargetName = "base_link";
     [SerializeField] private UIDocument UIDocument;
     [SerializeField] public GameObject robot3DModel;
-    private GameObject targetObject;
+    
+    #endregion
+
+    #region Private Fields
+    
+
     private Robot robot;
     private ROSConnection m_Ros {get; set;}
+    private QuaternionMsg qMessage = new QuaternionMsg();
+    //PointMsg pMessage = new PointMsg();
     
-    QuaternionMsg qMessage = new QuaternionMsg();
+    #endregion
+
+    #region Public Fields
+
+    public string selectedRobot { get; set; } = "Charlie";
+    public enum ACTIVEROBOT
+    {
+        Charlie = 0,
+        Lars = 1
+    }
+    
+    public ACTIVEROBOT ActiveRobot { get; set; }
+
+    #endregion
+    
     
     void Start()
     {
-        targetObject = null;
         // Subscribe to the current pose of the robot
-        m_Ros.Subscribe<OdometryMsg>("cur_pose", msg => {
+        m_Ros.Subscribe<OdometryMsg>("cur_pose", msg =>
+        {
+            //pMessage = msg.pose.pose.position;
             robot.currentX = msg.pose.pose.position.x;
             robot.currentY = msg.pose.pose.position.y;
             robot.currentZ = msg.pose.pose.position.z;
@@ -46,17 +70,23 @@ public class BasicController : MonoBehaviour
         // Give every controller a reference to the robot (Dependency Injection)
         rosSender.robot = robot;
         cameraController.robot = robot;
-        uiController.SetRobot(robot);
+        uiController.robot = robot;
         
         uiController.SetCameraController(cameraController);
         uiController.UIDocument = UIDocument;
     }
 
     // Update is called once per frame
-    void LateUpdate()
+    void Update()
     {
-        robot.currentPos = new Vector3((float)- robot.currentY,(float) robot.currentZ, (float) robot.currentX);
+        UpdateRobotPosition();
+        UpdateRobotRotation();
         robot3DModel.transform.localPosition = robot.currentPos;
+        robot3DModel.transform.rotation = robot.currentRot;
+    }
+
+    private void UpdateRobotRotation()
+    {
         Quaternion quad = new Quaternion((float) qMessage.x, (float) qMessage.y,(float) qMessage.z, (float)qMessage.w);
         Vector3 angles = quad.eulerAngles;
         angles.x = 0;
@@ -64,14 +94,12 @@ public class BasicController : MonoBehaviour
         angles.z = 0;
         Quaternion robotAngle = new Quaternion();
         robotAngle.eulerAngles = angles;
+        robot.currentRot = robotAngle;
     }
 
-    private void FindObject()
+    private void UpdateRobotPosition()
     {
-        if (targetObject == null)
-        {
-            // Attempt to find the "base" GameObject by name
-            targetObject = GameObject.Find(followTargetName);
-        }
+        //robot.currentPos = new Vector3((float) - pMessage.y, (float) pMessage.z, (float) pMessage.x);
+        robot.currentPos = new Vector3((float)- robot.currentY,(float) robot.currentZ, (float) robot.currentX);
     }
 }

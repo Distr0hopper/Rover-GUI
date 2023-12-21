@@ -36,19 +36,16 @@ namespace Model
         public double orientationY;
     
         public double currentX;
-    
         public double currentY;
         public double currentZ;
 
-        public double currentRotX;
-        public double currentRotY;
-        public double currentRotZ;
+
 
         public DIRECTIONS Direction { get; set; }
         public Vector3 goalInWorldPos { get; private set; }
         
         public Vector3 currentPos { get; set; }
-        public Vector3 currentRot { get; set; }
+        public Quaternion currentRot { get; set; }
 
         public void incrementSpeed()
         {
