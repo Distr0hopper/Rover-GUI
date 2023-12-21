@@ -20,7 +20,7 @@ namespace Model
             }
         }
         */
-        public int Speed { get; private set; } = 5;
+        public int Duration { get; private set; } = 5;
 
         public enum DIRECTIONS
         {
@@ -31,9 +31,9 @@ namespace Model
             right = 6
         }
         
-        public double orientationX;
+        public double orientationX { get; set; }
 
-        public double orientationY;
+        public double orientationY { get; set; }
     
         public double currentX;
         public double currentY;
@@ -49,12 +49,12 @@ namespace Model
 
         public void incrementSpeed()
         {
-            if (Speed < 8) Speed++;
+            if (Duration < 8) Duration++;
         }
 
         public void decrementSpeed()
         {
-            if (Speed > 1) Speed--;
+            if (Duration > 1) Duration--;
         }
 
         public void setGoalInWorldPos(Vector3 position)

@@ -12,8 +12,7 @@ using UnityEngine.UIElements;
 public class BasicController : MonoBehaviour
 {
     #region Serialized Fields
-
-    [SerializeField] public string followTargetName = "base_link";
+    
     [SerializeField] private UIDocument UIDocument;
     [SerializeField] public GameObject robot3DModel;
     
@@ -29,9 +28,8 @@ public class BasicController : MonoBehaviour
     
     #endregion
 
-    #region Public Fields
+    #region Enums
 
-    public string selectedRobot { get; set; } = "Charlie";
     public enum ACTIVEROBOT
     {
         Charlie = 0,
@@ -60,22 +58,23 @@ public class BasicController : MonoBehaviour
     {
         robot = new Robot();
         rosConnection = ROSConnection.GetOrCreateInstance();
-        
+        // Getting all controllers 
         var rosSender = FindObjectOfType<ROSSender>();
+        var cameraController = FindObjectOfType<CameraController>();
+        var uiController = FindObjectOfType<UIController>();
+        var connectionController = FindObjectOfType<ConnectionController>();
+        
         rosSender.rosConnection = rosConnection;
 
-        var cameraController = FindObjectOfType<CameraController>();
         cameraController.UIDocument = UIDocument;
 
-        var uiController = FindObjectOfType<UIController>();
-        uiController.SetCameraController(cameraController);
         uiController.UIDocument = UIDocument;
+        uiController.cameraController = cameraController;
+        uiController.connectionController = connectionController;
         
         
-        var connectionController = FindObjectOfType<ConnectionController>();
         connectionController.rosConnection = rosConnection;
 
-        uiController.connectionController = connectionController;
         
         // Give every controller a reference to the robot (Dependency Injection)
         rosSender.robot = robot;
@@ -83,16 +82,28 @@ public class BasicController : MonoBehaviour
         uiController.robot = robot;
         
     }
-
-    // Update is called once per frame
+    
     void Update()
     {
         UpdateRobotPosition();
         UpdateRobotRotation();
-        robot3DModel.transform.localPosition = robot.currentPos;
+        Update3DModelInScene();
+    }
+    
+
+    /*
+     * Set the position and the rotation of the robot model in the scene to the current position and rotation of the robot 
+     */
+    private void Update3DModelInScene()
+    {
+        //robot3DModel.transform.localPosition = robot.currentPos;
+        robot3DModel.transform.position = new Vector3(robot.currentPos.x, -0.1f, robot.currentPos.z); //Make that it is on the ground and not in the air
         robot3DModel.transform.rotation = robot.currentRot;
     }
 
+    /*
+     * Update the rotation value of the robot model
+     */
     private void UpdateRobotRotation()
     {
         Quaternion quad = new Quaternion((float) qMessage.x, (float) qMessage.y,(float) qMessage.z, (float)qMessage.w);
@@ -104,7 +115,10 @@ public class BasicController : MonoBehaviour
         robotAngle.eulerAngles = angles;
         robot.currentRot = robotAngle;
     }
-
+    
+    /*
+     * Update the position value of the robot model
+     */
     private void UpdateRobotPosition()
     {
         //robot.currentPos = new Vector3((float) - pMessage.y, (float) pMessage.z, (float) pMessage.x);

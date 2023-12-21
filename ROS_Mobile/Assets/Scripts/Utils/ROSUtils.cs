@@ -1,3 +1,4 @@
+using Model;
 using RosMessageTypes.BuiltinInterfaces;
 using RosMessageTypes.Geometry;
 using UnityEngine;
@@ -5,7 +6,11 @@ using UnityEngine;
 namespace Utils
 {
 public static class ROSUtils  {
-    public static PoseStampedMsg pointToPoseMsg(PointMsg unityMessage,double orientationX, double orientationY)
+    /*
+     * Convert a Vector3 to a ROS message (geometry_message::PoseStamped)
+     * The end orientation is the orientation while driving to the goal
+     */
+    public static PoseStampedMsg pointToPoseMsg(PointMsg unityMessage,Robot robot)
     {
         PoseStampedMsg rosMessage = new PoseStampedMsg();
         //rosMessage.header = new HeaderMsg();
@@ -27,7 +32,7 @@ public static class ROSUtils  {
         rosMessage.pose.position.z = unityMessage.y;
 
         // Calculate the orientation
-        Vector2 orientationToFinish = new Vector2((float)(rosMessage.pose.position.x - orientationX), (float)(rosMessage.pose.position.y - orientationY));
+        Vector2 orientationToFinish = new Vector2((float)(rosMessage.pose.position.x - robot.orientationX), (float)(rosMessage.pose.position.y - robot.orientationY));
         float angle = Vector2.SignedAngle(Vector2.right, orientationToFinish);
         rosMessage.pose.orientation = new QuaternionMsg
         {
@@ -37,8 +42,8 @@ public static class ROSUtils  {
             w = Mathf.Cos(angle * Mathf.Deg2Rad / 2)
         };
         
-        orientationX = rosMessage.pose.position.x;
-        orientationY = rosMessage.pose.position.y;
+        robot.orientationX = rosMessage.pose.position.x;
+        robot.orientationY = rosMessage.pose.position.y;
         
         return rosMessage;
     }

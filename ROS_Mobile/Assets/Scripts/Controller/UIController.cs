@@ -14,6 +14,7 @@ namespace myUIController
         private VisualElement secondView; //View which shows Top-Down view of the map
         private VisualElement manualDrivePanel;
         private VisualElement autoDrivePanel;
+        private VisualElement connectionState;
         
         private Button driveButton;
         private Button stopButton;
@@ -27,7 +28,7 @@ namespace myUIController
         private Button manualDriveModeButton;
         private Button switchViewButton;
         
-        private Label speedLabel;
+        private Label durationLabel;
 
         private EnumField changeRobotDropdown;
 
@@ -53,9 +54,9 @@ namespace myUIController
 
         #region Private Properties
         [HideInInspector] public UIDocument UIDocument { private get;  set; }
-        private CameraController cameraController { get;  set; }
+        public CameraController cameraController { private get;  set; }
         private Vector3 clickPosition;
-        public ConnectionController connectionController { get;  set; }
+        public ConnectionController connectionController { private get; set; }
         
         #endregion
 
@@ -81,77 +82,61 @@ namespace myUIController
             rightButton = root.Q<Button>("rgtButton");
             incrementButton = root.Q<Button>("incButton");
             decrementButton = root.Q<Button>("decButton");
-            speedLabel = root.Q<Label>("Time");
+            durationLabel = root.Q<Label>("Time");
             autoDriveModeButton = root.Q<Button>("AutoDriveMode");
             manualDriveModeButton = root.Q<Button>("ManualDriveMode");
             manualDrivePanel = root.Q<VisualElement>("ManualDrivePanel");
             autoDrivePanel = root.Q<VisualElement>("AutoDrivePanel");
             switchViewButton = root.Q<Button>("switchView");
             changeRobotDropdown = root.Q<EnumField>("RobotChoice");
+            connectionState = root.Q<VisualElement>("ConnectionState");
             
             // Click on mainview, screenpoint is converted to worldpoint
-            mainView.RegisterCallback<ClickEvent>(screenToWorld);
+            mainView.RegisterCallback<ClickEvent>(ScreenToWorld);
 
-            // Clicked methods for button
+            // Clicked methods for button //
             driveButton.clicked += () => { StartDrivingButtonClicked(); };
+            
             stopButton.clicked += () =>
             {
-                setStearingInformation(stopButton);
+                SetStearingInformation(stopButton);
                 ManualSteeringButtonClicked();
             };
             forwardButton.clicked += () =>
             {
-                setStearingInformation(forwardButton);
+                SetStearingInformation(forwardButton);
                 ManualSteeringButtonClicked();
             };
             backwardButton.clicked += () =>
             {
-                setStearingInformation(backwardButton);
+                SetStearingInformation(backwardButton);
                 ManualSteeringButtonClicked();
             };
             leftButton.clicked += () =>
             {
-                setStearingInformation(leftButton);
+                SetStearingInformation(leftButton);
                 ManualSteeringButtonClicked();
             };
             rightButton.clicked += () =>
             {
-                setStearingInformation(rightButton);
+                SetStearingInformation(rightButton);
                 ManualSteeringButtonClicked();
             };
             
-            autoDriveModeButton.clicked += () => { setAutoDriveMode(); };
-            manualDriveModeButton.clicked += () => { setManualDriveMode(); };
-            incrementButton.clicked += () => { incrementSpeed(); };
-            decrementButton.clicked += () => { decrementSpeed(); };
+            autoDriveModeButton.clicked += () => { SetAutoDriveMode(); };
+            manualDriveModeButton.clicked += () => { SetManualDriveMode(); };
+            incrementButton.clicked += () => { IncrementDuration(); };
+            decrementButton.clicked += () => { DecrementDuration(); };
             
-            switchViewButton.clicked += () => { switchView(); };
+            switchViewButton.clicked += () => { SwitchView(); };
             
             //Method when Dropdown Menue is clicked
             changeRobotDropdown.RegisterValueChangedCallback(evt => {OnDropdownValueChanged(evt.newValue); });
 
+            connectionController.OnConnectionStatusChanged += HandleConnectionStatusChanged;
             StartCoroutine(InitializeAfterLayout());
-            
-           
         }
         
-        private void OnDropdownValueChanged(Enum newValue)
-        {
-            BasicController.ACTIVEROBOT selectedRobot = (BasicController.ACTIVEROBOT) newValue;
-            BasicController.ActiveRobot = selectedRobot;
-            connectionController.changeRobotIP();
-        }
-        
-        
-        private IEnumerator InitializeAfterLayout()
-        {
-            // Wait until the end of the frame
-            yield return new WaitForEndOfFrame();
-
-            mainViewTexture = RenderTextureResize.Resize(mainViewTexture, mainView.resolvedStyle.width, mainView.resolvedStyle.height);
-            secondViewTexture = RenderTextureResize.Resize(secondViewTexture, secondView.resolvedStyle.width, secondView.resolvedStyle.height);
-        }
-
         /*
          * When closing the application and the Views are still changed,
          * set the RenderTextures to the correct start values.
@@ -161,78 +146,96 @@ namespace myUIController
         {
             mainViewTexture = RenderTextureResize.Resize(mainViewTexture, mainView.resolvedStyle.width, mainView.resolvedStyle.height);
             secondViewTexture = RenderTextureResize.Resize(secondViewTexture, secondView.resolvedStyle.width, secondView.resolvedStyle.height);
+            // Unsubscribe when the application is closed
+            connectionController.OnConnectionStatusChanged -= HandleConnectionStatusChanged;
         }
         
-        public void SetCameraController(CameraController cameraController)
+        /*
+         * Change the color of the connection state in the UI depending on the connection status
+         */
+        private void HandleConnectionStatusChanged(bool isConnected)
         {
-            this.cameraController = cameraController;
+            // Update the connection state in the UI
+            connectionState.style.backgroundColor = isConnected ? new StyleColor(Color.green) : new StyleColor(Color.red);
         }
+        
+        /*
+         * Change the active robot depending on the selected value in the dropdown menu
+         */
+        private void OnDropdownValueChanged(Enum newValue)
+        {
+            BasicController.ACTIVEROBOT selectedRobot = (BasicController.ACTIVEROBOT) newValue;
+            BasicController.ActiveRobot = selectedRobot;
+            connectionController.changeRobotIP();
+        }
+        
+        /*
+         * Wait until the layout is done and then resize the RenderTextures to the correct size
+         */
+        private IEnumerator InitializeAfterLayout()
+        {
+            // Wait until the end of the frame
+            yield return new WaitForEndOfFrame();
+
+            mainViewTexture = RenderTextureResize.Resize(mainViewTexture, mainView.resolvedStyle.width, mainView.resolvedStyle.height);
+            secondViewTexture = RenderTextureResize.Resize(secondViewTexture, secondView.resolvedStyle.width, secondView.resolvedStyle.height);
+        }
+
 
         /*
          * Code adapted from:
          * https://forum.unity.com/threads/solved-how-to-get-world-point-coordinates-from-a-render-texture.539393/
+         * Only shoot the ray if the click was on the main view, otherwise the ray would be shot even if clicked on the buttons
+         * which are on the main view.
          */
-        private void screenToWorld(ClickEvent evt)
+        private void ScreenToWorld(ClickEvent evt)
         {
+            // Return if not clicked on mainView (clicked on button then)
+            if(evt.target != mainView) return;
             clickPosition = evt.localPosition;
             // Convert click position to a proportion of the VisualElement's size (because it is in Pixels and not in World Units)
             clickPosition.x /= mainView.resolvedStyle.width;
             clickPosition.y /= mainView.resolvedStyle.height;
 
-            Vector3
-                viewportPoint =
-                    new Vector3(clickPosition.x,
-                        1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
-
-            Ray ray = cameraController.activeMainUICamera.ViewportPointToRay(viewportPoint);
-            /*
-            if (Physics.Raycast(ray, out RaycastHit hit))
-            {
-                // Get the point where it hit
-                Vector3 mousePositionWorld = hit.point;
-                marker.transform.position = new Vector3(worldPosition.x, 0, worldPosition.z);
-                Debug.DrawLine(ray.origin, hit.point, Color.green, 5.0f);
-                Debug.LogWarning(hit.collider.gameObject.name);
-                setWorldCoordinates(mousePositionWorld);
-            }
-            else
-            {
-                Debug.DrawRay(ray.origin, ray.direction * 1000, Color.red, 5.0f);
-            }
-            */
+            Vector3 viewportPoint = new Vector3(clickPosition.x, 1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
             
-            //Raycast it against ground Plane, shorthand for a vector projection. Works better than the above code
+            Ray ray = cameraController.activeMainUICamera.ViewportPointToRay(viewportPoint);
+
+            //Raycast it against ground Plane, shorthand for a vector projection.
             Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
             if (groundPlane.Raycast(ray, out float enter))
             {
                 Vector3 worldPosition = ray.GetPoint(enter);
                 marker.transform.position = new Vector3(worldPosition.x, worldPosition.y, worldPosition.z);
-                //Debug.Log("World position: " + new Vector3(worldPosition.z, - worldPosition.x, worldPosition.y));   
-                //Debug.DrawLine(ray.origin, ray.GetPoint(enter), Color.green, 5.0f);
 
                 // Set the world coordinates in the robot model
                 robot.setGoalInWorldPos(worldPosition);
             }
-            else
-            {
-                Debug.DrawRay(ray.origin, ray.direction * 1000, Color.red, 5.0f);
-            }
-
         }
 
+        /*
+         * Event listener:
+         * Waiting for button click event to start driving to the goal
+         */
         private void StartDrivingButtonClicked()
         {
             OnStartDriving?.Invoke();
         }
 
+        /*
+         * Event listener:
+         * Waiting for any manual steering button to be clicked
+         */
         private void ManualSteeringButtonClicked()
         {
             OnManualSteering?.Invoke();
         }
 
-        private void setStearingInformation(Button clickedButton)
+        /*
+         * Set the steering information in the robot model depending on the clicked button
+         */
+        private void SetStearingInformation(Button clickedButton)
         {
-            UnityEngine.Debug.Log("height: " + secondView.resolvedStyle.height + "\n width: " + secondView.resolvedStyle.width);
             if (clickedButton == forwardButton)
             {
                 robot.Direction = Robot.DIRECTIONS.forward;
@@ -255,36 +258,54 @@ namespace myUIController
             }
         }
 
-        private void incrementSpeed()
+        /*
+         * Increment the duration of the robot model and update the duration label in the UI
+         */
+        private void IncrementDuration()
         {
             robot.incrementSpeed();
-            updateSpeedLabelInView();
+            UpdateDurationLabelInView();
         }
         
-        private void decrementSpeed()
+        /*
+         * Decrement the duration of the robot model and update the duration label in the UI
+         */
+        private void DecrementDuration()
         {
             robot.decrementSpeed();
-          updateSpeedLabelInView();
+          UpdateDurationLabelInView();
         }
         
-        private void updateSpeedLabelInView()
+        /*
+         * Update the duration label in the UI with the duration of the robot model
+         */
+        private void UpdateDurationLabelInView()
         {
-            speedLabel.text = robot.Speed.ToString(); // Update the speed label in the UI
+            durationLabel.text = robot.Duration.ToString(); 
         }
 
-        private void setManualDriveMode()
+        /*
+         * Show the manual drive panel when clicked on the manual drive mode button
+         */
+        private void SetManualDriveMode()
         {
             manualDrivePanel.style.display = DisplayStyle.Flex;
             autoDrivePanel.style.display = DisplayStyle.None;
         }
         
-        private void setAutoDriveMode()
+        /*
+         * Show the auto drive panel when clicked on the auto drive mode button (manual drive panel is hidden on auto drive mode)
+         */
+        private void SetAutoDriveMode()
         {
             autoDrivePanel.style.display = DisplayStyle.Flex;
             manualDrivePanel.style.display = DisplayStyle.None; 
         }
         
-        private void switchView()
+        /*
+         * Switch the active view (main view and second view)
+         */
+        private void SwitchView()
         {
             // Toggle the view state
             isMainActive = !isMainActive;
@@ -298,10 +319,14 @@ namespace myUIController
             // Update background images
             UpdateBackgroundImages();
 
-            // Swap camera tags
-            cameraController.SwapCamera(isMainActive);
+            // Swap active camera which renders the onto the mainView
+            cameraController.SwapCamera();
         }
 
+        #region Helper Methods
+        /*
+         * Swap the main and second view textures
+         */
         private void SwapTextures()
         {
             (mainViewTexture, secondViewTexture) = (secondViewTexture, mainViewTexture);
@@ -310,18 +335,26 @@ namespace myUIController
             //mainViewTexture = secondViewTexture;
             //secondViewTexture = temp;
         }
-
+        
+        /*
+         * Resize the textures so it fits the VisualElement which they are rendered on
+         */
         private void ResizeTextures()
         {
             mainViewTexture = RenderTextureResize.Resize(mainViewTexture, mainView.resolvedStyle.width, mainView.resolvedStyle.height);
             secondViewTexture = RenderTextureResize.Resize(secondViewTexture, secondView.resolvedStyle.width, secondView.resolvedStyle.height);
         }
-
+        
+        /*
+         * Set the rendered textures to the VisualElement Background
+         */
         private void UpdateBackgroundImages()
         {
             mainView.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(mainViewTexture));
             secondView.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(secondViewTexture));
         }
+        
+        #endregion
         
     }
     

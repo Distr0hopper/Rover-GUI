@@ -65,12 +65,11 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
-        mainCamera.transform.position = robot.currentPos + mainCamOffset;
-        secondCamera.transform.position = robot.currentPos + secondCamOffset;
-        
-        if (inputDetected())
+        UpdateCameraPosition();
+
+        if (InputDetected())
         {
-            var rotationY = getJoystickInput(out var rotationQuat);
+            var rotationY = GetJoystickInput(out var rotationQuat);
             // Cameras are rotated differently since Main Camera (Birdseye view) is a orthographic camera and the other camera is perspective
             if (UIController.isMainActive)
             {
@@ -81,14 +80,26 @@ public class CameraController : MonoBehaviour
             {
                 activeMainUICamera.transform.rotation *= rotationQuat;
             }
-                rotateCamera();
+                RotateCamera();
         }
-        
     }
-    
-    public void SwapCamera(bool isMainViewActive)
+
+    /*
+     * Make the cameras follow the position of the robot.
+     * Adds a offset to the position of the camera so that the camera is not directly inside the robot
+     */
+    private void UpdateCameraPosition()
     {
-        if (isMainViewActive)
+        mainCamera.transform.position = robot.currentPos + mainCamOffset;
+        secondCamera.transform.position = robot.currentPos + secondCamOffset;
+    }
+
+    /*
+     * Swap the active camera between the main camera and the second camera
+     */
+    public void SwapCamera()
+    {
+        if (UIController.isMainActive)
         {
             activeMainUICamera = mainCamera;
         }
@@ -98,8 +109,10 @@ public class CameraController : MonoBehaviour
         }
     }
     
-    
-    private void rotateCamera()
+    /*
+     * Rotate the camera
+     */
+    private void RotateCamera()
     {
         Vector3 currentRotation = activeMainUICamera.transform.eulerAngles;
         // Set the z euler angle of transformation to 0
@@ -107,7 +120,7 @@ public class CameraController : MonoBehaviour
         activeMainUICamera.transform.eulerAngles = currentRotation;
     }
 
-    private float getJoystickInput(out Quaternion rotationQuat)
+    private float GetJoystickInput(out Quaternion rotationQuat)
     {
         float rotationX = -m_JoystickDelta.y * rotationSpeed;
         float rotationY = m_JoystickDelta.x * rotationSpeed;
@@ -117,7 +130,7 @@ public class CameraController : MonoBehaviour
         return rotationY;
     }
 
-    private bool inputDetected()
+    private bool InputDetected()
     {
         return m_JoystickDelta != Vector2.zero;
     }

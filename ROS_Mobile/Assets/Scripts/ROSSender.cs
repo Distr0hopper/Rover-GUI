@@ -26,13 +26,16 @@ public class ROSSender : MonoBehaviour
         rosConnection.RegisterPublisher<Move_commandMsg>(stear_TopicName);
 
         // Wait for GUI to be clicked
-        UIController.OnStartDriving += sendPointToDrive;
-        UIController.OnManualSteering += sendManualStearingCommand;
+        UIController.OnStartDriving += SendPointToDrive;
+        UIController.OnManualSteering += SendManualStearingCommand;
     }
     
-    private void sendPointToDrive()
+    /*
+     * Send the clicked point to the ROS network
+     */
+    private void SendPointToDrive()
     {
-        // Get the coordinates from Model
+        // Get the coordinates where it wants to drive from Robot Model
         Vector3 worldCoordinates = robot.getGoalInWorldPos();
         var vector3Message = new PointMsg
         {
@@ -41,29 +44,31 @@ public class ROSSender : MonoBehaviour
             z = worldCoordinates.z // Extract the Z coordinate from the GameObject
         };
         
-        PoseStampedMsg messageToRos = ROSUtils.pointToPoseMsg(vector3Message, robot.orientationX, robot.orientationY);
+        // Convert the Vector3 to a ROS message (geometry_message::PoseStamped), end orientation is the orientation while driving to the goal
+        PoseStampedMsg messageToRos = ROSUtils.pointToPoseMsg(vector3Message, robot);
         robot.orientationX = messageToRos.pose.position.x;
         robot.orientationY = messageToRos.pose.position.y;
-        // Vector3 to geometry_message::PoseStamped
-        // PoseStamped hat Header (Std_msgs) - Pose (geometry_msgs::Pose)
+
         Debug.Log(messageToRos);
         // Publish the message to the ROS network
         rosConnection.Publish(point_TopicName, messageToRos);
     }
     
-    private void sendManualStearingCommand()
+    /*
+     * Send the manual steering command to the ROS network and update the orientation of the robot
+     */
+    private void SendManualStearingCommand()
     {
-        Debug.Log("ROSSender: " + robot.Direction);
+        Debug.Log("Direction: " + robot.Direction);
         Move_commandMsg moveCommandMsg = new Move_commandMsg();
         moveCommandMsg.setSpeed = false;
         if (robot.Direction == 0)
         {
             moveCommandMsg.stop = true;
         } else moveCommandMsg.stop = false;
-
-        Debug.Log("Speed: " + robot.Speed);
+        
         moveCommandMsg.direction = (sbyte)robot.Direction;
-        moveCommandMsg.duration = new DurationMsg(robot.Speed);
+        moveCommandMsg.duration = new DurationMsg(robot.Duration);
         rosConnection.Publish(stear_TopicName, moveCommandMsg);
         robot.orientationX = robot.currentX;
         robot.orientationY = robot.currentY;
