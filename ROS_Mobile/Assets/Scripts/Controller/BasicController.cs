@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Model;
 using myUIController;
@@ -74,12 +71,6 @@ public class BasicController : MonoBehaviour
         
         
         connectionController.rosConnection = rosConnection;
-
-        
-        // Give every controller a reference to the robot (Dependency Injection)
-        rosSender.robot = robot;
-        cameraController.robot = robot;
-        uiController.robot = robot;
         
     }
     

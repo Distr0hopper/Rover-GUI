@@ -28,8 +28,6 @@ public class CameraController : MonoBehaviour
     private Camera mainCamera;
     private Camera secondCamera;
     
-    public Robot robot { private get; set; }
-    
     [FormerlySerializedAs("worldObjectPushStrength")] public float rotationSpeed = 1.25f;
 
     void OnEnable()
@@ -90,8 +88,8 @@ public class CameraController : MonoBehaviour
      */
     private void UpdateCameraPosition()
     {
-        mainCamera.transform.position = robot.currentPos + mainCamOffset;
-        secondCamera.transform.position = robot.currentPos + secondCamOffset;
+        mainCamera.transform.position = Robot.Instance.currentPos + mainCamOffset;
+        secondCamera.transform.position = Robot.Instance.currentPos + secondCamOffset;
     }
 
     /*

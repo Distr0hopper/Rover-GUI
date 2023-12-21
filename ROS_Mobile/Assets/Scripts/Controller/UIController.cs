@@ -47,7 +47,6 @@ namespace myUIController
         [SerializeField] public RenderTexture mainViewTexture;
         [SerializeField] public RenderTexture secondViewTexture;
         public static bool isMainActive = true;
-        public Robot robot { get; set; }
         
         
         #endregion
@@ -209,7 +208,7 @@ namespace myUIController
                 marker.transform.position = new Vector3(worldPosition.x, worldPosition.y, worldPosition.z);
 
                 // Set the world coordinates in the robot model
-                robot.setGoalInWorldPos(worldPosition);
+                Robot.Instance.setGoalInWorldPos(worldPosition);
             }
         }
 
@@ -238,23 +237,23 @@ namespace myUIController
         {
             if (clickedButton == forwardButton)
             {
-                robot.Direction = Robot.DIRECTIONS.forward;
+                Robot.Instance.Direction = Robot.DIRECTIONS.forward;
             }
             else if (clickedButton == backwardButton)
             {
-                robot.Direction = Robot.DIRECTIONS.backward;
+                Robot.Instance.Direction = Robot.DIRECTIONS.backward;
             }
             else if (clickedButton == leftButton)
             {
-                robot.Direction = Robot.DIRECTIONS.left;
+                Robot.Instance.Direction = Robot.DIRECTIONS.left;
             }
             else if (clickedButton == rightButton)
             {
-                robot.Direction = Robot.DIRECTIONS.right;
+                Robot.Instance.Direction = Robot.DIRECTIONS.right;
             }
             else if (clickedButton == stopButton)
             {
-                robot.Direction = Robot.DIRECTIONS.stop;
+                Robot.Instance.Direction = Robot.DIRECTIONS.stop;
             }
         }
 
@@ -263,7 +262,7 @@ namespace myUIController
          */
         private void IncrementDuration()
         {
-            robot.incrementSpeed();
+            Robot.Instance.incrementSpeed();
             UpdateDurationLabelInView();
         }
         
@@ -272,7 +271,7 @@ namespace myUIController
          */
         private void DecrementDuration()
         {
-            robot.decrementSpeed();
+            Robot.Instance.decrementSpeed();
           UpdateDurationLabelInView();
         }
         
@@ -281,7 +280,7 @@ namespace myUIController
          */
         private void UpdateDurationLabelInView()
         {
-            durationLabel.text = robot.Duration.ToString(); 
+            durationLabel.text = Robot.Instance.Duration.ToString(); 
         }
 
         /*

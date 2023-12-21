@@ -5,7 +5,6 @@ using RosMessageTypes.BuiltinInterfaces;
 using UnityEngine;
 using Unity.Robotics.ROSTCPConnector;
 using RosMessageTypes.Geometry;
-using RosMessageTypes.Nav;
 using UnityEngine.Serialization;
 using RosMessageTypes.ROSMobile;
 public class ROSSender : MonoBehaviour
@@ -14,8 +13,6 @@ public class ROSSender : MonoBehaviour
     private string point_TopicName = "/move_base_simple/goal";
 
     private string stear_TopicName = "/man_control";
-
-    public Robot robot { private get; set; }
     
     // ROS Connector
     public ROSConnection rosConnection { private get; set; }
@@ -36,7 +33,7 @@ public class ROSSender : MonoBehaviour
     private void SendPointToDrive()
     {
         // Get the coordinates where it wants to drive from Robot Model
-        Vector3 worldCoordinates = robot.getGoalInWorldPos();
+        Vector3 worldCoordinates = Robot.Instance.getGoalInWorldPos();
         var vector3Message = new PointMsg
         {
             x = worldCoordinates.x, // Extract the X coordinate from the GameObject
@@ -45,9 +42,9 @@ public class ROSSender : MonoBehaviour
         };
         
         // Convert the Vector3 to a ROS message (geometry_message::PoseStamped), end orientation is the orientation while driving to the goal
-        PoseStampedMsg messageToRos = ROSUtils.pointToPoseMsg(vector3Message, robot);
-        robot.orientationX = messageToRos.pose.position.x;
-        robot.orientationY = messageToRos.pose.position.y;
+        PoseStampedMsg messageToRos = ROSUtils.pointToPoseMsg(vector3Message);
+        Robot.Instance.orientationX = messageToRos.pose.position.x;
+        Robot.Instance.orientationY = messageToRos.pose.position.y;
 
         Debug.Log(messageToRos);
         // Publish the message to the ROS network
@@ -59,19 +56,19 @@ public class ROSSender : MonoBehaviour
      */
     private void SendManualStearingCommand()
     {
-        Debug.Log("Direction: " + robot.Direction);
+        Debug.Log("Direction: " + Robot.Instance.Direction + " for " + Robot.Instance.Duration + " seconds");
         Move_commandMsg moveCommandMsg = new Move_commandMsg();
         moveCommandMsg.setSpeed = false;
-        if (robot.Direction == 0)
+        if (Robot.Instance.Direction == 0)
         {
             moveCommandMsg.stop = true;
         } else moveCommandMsg.stop = false;
         
-        moveCommandMsg.direction = (sbyte)robot.Direction;
-        moveCommandMsg.duration = new DurationMsg(robot.Duration);
+        moveCommandMsg.direction = (sbyte)Robot.Instance.Direction;
+        moveCommandMsg.duration = new DurationMsg(Robot.Instance.Duration);
         rosConnection.Publish(stear_TopicName, moveCommandMsg);
-        robot.orientationX = robot.currentX;
-        robot.orientationY = robot.currentY;
+        Robot.Instance.orientationX = Robot.Instance.currentX;
+        Robot.Instance.orientationY = Robot.Instance.currentY;
     }
     
 }

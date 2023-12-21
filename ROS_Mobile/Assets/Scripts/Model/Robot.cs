@@ -5,7 +5,7 @@ namespace Model
    
     public class Robot
     {
-        /*
+        
         // Singleton Pattern for  RobotModel
         private static Robot _instance;
         public static Robot Instance
@@ -19,7 +19,7 @@ namespace Model
                 return _instance;
             }
         }
-        */
+        
         public int Duration { get; private set; } = 5;
 
         public enum DIRECTIONS

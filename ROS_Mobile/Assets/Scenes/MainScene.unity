@@ -305,7 +305,7 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1588145924}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &38204592
+--- !u!114 &38204595
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -999,7 +999,7 @@ PrefabInstance:
     - target: {fileID: 8704871610724087355, guid: 7e7b80cc1080672479f6e13ab94bb3b5,
         type: 3}
       propertyPath: m_RosIPAddress
-      value: 192.118.52.31
+      value: 192.168.56.20
       objectReference: {fileID: 0}
     - target: {fileID: 9117757106899039635, guid: 7e7b80cc1080672479f6e13ab94bb3b5,
         type: 3}
@@ -2316,7 +2316,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5240387698711624104, guid: 7e8ecfd17cd58c247916864b74797f3f,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 38204592}
+      addedObject: {fileID: 38204595}
   m_SourcePrefab: {fileID: 100100000, guid: 7e8ecfd17cd58c247916864b74797f3f, type: 3}
 --- !u!4 &1588145925 stripped
 Transform:
