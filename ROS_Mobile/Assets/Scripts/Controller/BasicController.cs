@@ -23,7 +23,7 @@ public class BasicController : MonoBehaviour
     
 
     private Robot robot;
-    private ROSConnection m_Ros {get; set;}
+    private ROSConnection rosConnection {get; set;}
     private QuaternionMsg qMessage = new QuaternionMsg();
     //PointMsg pMessage = new PointMsg();
     
@@ -37,8 +37,8 @@ public class BasicController : MonoBehaviour
         Charlie = 0,
         Lars = 1
     }
-    
-    public ACTIVEROBOT ActiveRobot { get; set; }
+
+    public static ACTIVEROBOT ActiveRobot { get; set; } = ACTIVEROBOT.Charlie;
 
     #endregion
     
@@ -46,7 +46,7 @@ public class BasicController : MonoBehaviour
     void Start()
     {
         // Subscribe to the current pose of the robot
-        m_Ros.Subscribe<OdometryMsg>("cur_pose", msg =>
+        rosConnection.Subscribe<OdometryMsg>("cur_pose", msg =>
         {
             //pMessage = msg.pose.pose.position;
             robot.currentX = msg.pose.pose.position.x;
@@ -59,21 +59,29 @@ public class BasicController : MonoBehaviour
     private void Awake()
     {
         robot = new Robot();
-        m_Ros = ROSConnection.GetOrCreateInstance();
+        rosConnection = ROSConnection.GetOrCreateInstance();
+        
         var rosSender = FindObjectOfType<ROSSender>();
-        rosSender.m_Ros = m_Ros;
+        rosSender.rosConnection = rosConnection;
 
         var cameraController = FindObjectOfType<CameraController>();
         cameraController.UIDocument = UIDocument;
 
         var uiController = FindObjectOfType<UIController>();
+        uiController.SetCameraController(cameraController);
+        uiController.UIDocument = UIDocument;
+        
+        
+        var connectionController = FindObjectOfType<ConnectionController>();
+        connectionController.rosConnection = rosConnection;
+
+        uiController.connectionController = connectionController;
+        
         // Give every controller a reference to the robot (Dependency Injection)
         rosSender.robot = robot;
         cameraController.robot = robot;
         uiController.robot = robot;
         
-        uiController.SetCameraController(cameraController);
-        uiController.UIDocument = UIDocument;
     }
 
     // Update is called once per frame

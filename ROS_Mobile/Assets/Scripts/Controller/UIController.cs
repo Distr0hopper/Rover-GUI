@@ -53,8 +53,9 @@ namespace myUIController
 
         #region Private Properties
         [HideInInspector] public UIDocument UIDocument { private get;  set; }
-        private CameraController cameraController;
+        private CameraController cameraController { get;  set; }
         private Vector3 clickPosition;
+        public ConnectionController connectionController { get;  set; }
         
         #endregion
 
@@ -125,6 +126,8 @@ namespace myUIController
             decrementButton.clicked += () => { decrementSpeed(); };
             
             switchViewButton.clicked += () => { switchView(); };
+            
+            //Method when Dropdown Menue is clicked
             changeRobotDropdown.RegisterValueChangedCallback(evt => {OnDropdownValueChanged(evt.newValue); });
 
             StartCoroutine(InitializeAfterLayout());
@@ -134,10 +137,11 @@ namespace myUIController
         
         private void OnDropdownValueChanged(Enum newValue)
         {
-            // Handle the new value here - for example, update a label or print to console
-            Debug.Log("Selected Value: " + newValue);
-            
+            BasicController.ACTIVEROBOT selectedRobot = (BasicController.ACTIVEROBOT) newValue;
+            BasicController.ActiveRobot = selectedRobot;
+            connectionController.changeRobotIP();
         }
+        
         
         private IEnumerator InitializeAfterLayout()
         {

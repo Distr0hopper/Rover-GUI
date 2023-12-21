@@ -18,12 +18,12 @@ public class ROSSender : MonoBehaviour
     public Robot robot { private get; set; }
     
     // ROS Connector
-    public ROSConnection m_Ros { private get; set; }
+    public ROSConnection rosConnection { private get; set; }
     void Start()
     {
         // Register publishers for sending point and move commands
-        m_Ros.RegisterPublisher<PoseStampedMsg>(point_TopicName);
-        m_Ros.RegisterPublisher<Move_commandMsg>(stear_TopicName);
+        rosConnection.RegisterPublisher<PoseStampedMsg>(point_TopicName);
+        rosConnection.RegisterPublisher<Move_commandMsg>(stear_TopicName);
 
         // Wait for GUI to be clicked
         UIController.OnStartDriving += sendPointToDrive;
@@ -48,7 +48,7 @@ public class ROSSender : MonoBehaviour
         // PoseStamped hat Header (Std_msgs) - Pose (geometry_msgs::Pose)
         Debug.Log(messageToRos);
         // Publish the message to the ROS network
-        m_Ros.Publish(point_TopicName, messageToRos);
+        rosConnection.Publish(point_TopicName, messageToRos);
     }
     
     private void sendManualStearingCommand()
@@ -64,7 +64,7 @@ public class ROSSender : MonoBehaviour
         Debug.Log("Speed: " + robot.Speed);
         moveCommandMsg.direction = (sbyte)robot.Direction;
         moveCommandMsg.duration = new DurationMsg(robot.Speed);
-        m_Ros.Publish(stear_TopicName, moveCommandMsg);
+        rosConnection.Publish(stear_TopicName, moveCommandMsg);
         robot.orientationX = robot.currentX;
         robot.orientationY = robot.currentY;
     }

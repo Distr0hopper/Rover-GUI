@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028328, g: 0.22571328, b: 0.3069218, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -791,6 +791,7 @@ GameObject:
   - component: {fileID: 713207222}
   - component: {fileID: 713207223}
   - component: {fileID: 713207224}
+  - component: {fileID: 713207225}
   m_Layer: 0
   m_Name: Controller
   m_TagString: Untagged
@@ -871,6 +872,20 @@ MonoBehaviour:
   marker: {fileID: 1877822715}
   mainViewTexture: {fileID: 8400000, guid: 027156004e5e2924aab187595d0c4114, type: 2}
   secondViewTexture: {fileID: 8400000, guid: ec718f131e6ba7945892e7ab69e5db16, type: 2}
+--- !u!114 &713207225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713207217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2733b5fcdf498c62d9c7170b9d8cf734, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  charlie_ip: 192.168.0.122
+  lars_ip: 192.168.0.52
 --- !u!1 &738457002
 GameObject:
   m_ObjectHideFlags: 0
