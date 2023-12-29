@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using Model;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -29,6 +30,8 @@ namespace myUIController
         private Button switchViewButton;
         
         private Label durationLabel;
+        private Label distanceLabel;
+        private Label arrivalLabel;
 
         private EnumField changeRobotDropdown;
 
@@ -89,6 +92,9 @@ namespace myUIController
             switchViewButton = root.Q<Button>("switchView");
             changeRobotDropdown = root.Q<EnumField>("RobotChoice");
             connectionState = root.Q<VisualElement>("ConnectionState");
+            distanceLabel = root.Q<Label>("DistanceLabel");
+            arrivalLabel = root.Q<Label>("ArrivalLabel");  
+            
             
             // Click on mainview, screenpoint is converted to worldpoint
             mainView.RegisterCallback<ClickEvent>(ScreenToWorld);
@@ -195,23 +201,45 @@ namespace myUIController
             // Convert click position to a proportion of the VisualElement's size (because it is in Pixels and not in World Units)
             clickPosition.x /= mainView.resolvedStyle.width;
             clickPosition.y /= mainView.resolvedStyle.height;
-
-            Vector3 viewportPoint = new Vector3(clickPosition.x, 1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
             
+            Vector3 viewportPoint = new Vector3(clickPosition.x, 1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
+            Vector3 worldPosition = new Vector3();
             Ray ray = cameraController.activeMainUICamera.ViewportPointToRay(viewportPoint);
 
             //Raycast it against ground Plane, shorthand for a vector projection.
             Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
             if (groundPlane.Raycast(ray, out float enter))
             {
-                Vector3 worldPosition = ray.GetPoint(enter);
+                worldPosition = ray.GetPoint(enter);
                 marker.transform.position = new Vector3(worldPosition.x, worldPosition.y, worldPosition.z);
 
                 // Set the world coordinates in the robot model
                 Robot.Instance.setGoalInWorldPos(worldPosition);
             }
+            calculateDistance(worldPosition);
         }
-
+        
+        /*
+         * Calculate the distance between the robot and the goal
+         */
+        private void calculateDistance(Vector3 worldPosition)
+        {
+            // Calculate the distance between the robot and the goal
+            float distance = Vector3.Distance(Robot.Instance.currentPos, worldPosition);
+            Debug.Log("Distance: " + distance + " m");
+            updateDistanceLabel(distance);
+        }
+        
+        private void updateDistanceLabel(float distance)
+        {
+            // The distance only in 2 decimal places
+            distance = (float) Math.Round(distance, 2);
+            string distanceString = distance.ToString();
+            // Add " m" to the distance string
+            distanceString += " m";
+            distanceLabel.text = distanceString;
+        }
+        
         /*
          * Event listener:
          * Waiting for button click event to start driving to the goal
