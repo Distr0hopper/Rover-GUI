@@ -20,7 +20,7 @@ namespace Model
             }
         }
         
-        public int Duration { get; private set; } = 5;
+        public int Duration { get; set; } = 5;
 
         public enum DIRECTIONS
         {
@@ -31,40 +31,40 @@ namespace Model
             right = 6
         }
         
-        public double orientationX { get; set; }
+        public double OrientationX { get; set; }
 
-        public double orientationY { get; set; }
+        public double OrientationY { get; set; }
     
-        public double currentX;
-        public double currentY;
-        public double currentZ;
+        public double CurrentX;
+        public double CurrentY;
+        public double CurrentZ;
 
 
 
         public DIRECTIONS Direction { get; set; }
-        public Vector3 goalInWorldPos { get; private set; }
+        public Vector3 GoalInWorldPos { get; private set; }
         
-        public Vector3 currentPos { get; set; }
-        public Quaternion currentRot { get; set; }
+        public Vector3 CurrentPos { get; set; }
+        public Quaternion CurrentRot { get; set; }
 
-        public void incrementSpeed()
+        public void IncrementSpeed()
         {
             if (Duration < 8) Duration++;
         }
 
-        public void decrementSpeed()
+        public void DecrementSpeed()
         {
             if (Duration > 1) Duration--;
         }
 
-        public void setGoalInWorldPos(Vector3 position)
+        public void SetGoalInWorldPos(Vector3 position)
         {
-            goalInWorldPos = position;
+            GoalInWorldPos = position;
         }
 
-        public Vector3 getGoalInWorldPos()
+        public Vector3 GetGoalInWorldPos()
         {
-            return goalInWorldPos;
+            return GoalInWorldPos;
         }
 
     }

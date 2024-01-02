@@ -32,7 +32,7 @@ public static class ROSUtils  {
         rosMessage.pose.position.z = unityMessage.y;
 
         // Calculate the orientation
-        Vector2 orientationToFinish = new Vector2((float)(rosMessage.pose.position.x - Robot.Instance.orientationX), (float)(rosMessage.pose.position.y - Robot.Instance.orientationY));
+        Vector2 orientationToFinish = new Vector2((float)(rosMessage.pose.position.x - Robot.Instance.OrientationX), (float)(rosMessage.pose.position.y - Robot.Instance.OrientationY));
         float angle = Vector2.SignedAngle(Vector2.right, orientationToFinish);
         rosMessage.pose.orientation = new QuaternionMsg
         {
@@ -42,8 +42,8 @@ public static class ROSUtils  {
             w = Mathf.Cos(angle * Mathf.Deg2Rad / 2)
         };
         
-        Robot.Instance.orientationX = rosMessage.pose.position.x;
-        Robot.Instance.orientationY = rosMessage.pose.position.y;
+        Robot.Instance.OrientationX = rosMessage.pose.position.x;
+        Robot.Instance.OrientationY = rosMessage.pose.position.y;
         
         return rosMessage;
     }

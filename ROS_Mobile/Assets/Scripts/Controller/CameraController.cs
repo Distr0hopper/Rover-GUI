@@ -91,8 +91,8 @@ public class CameraController : MonoBehaviour
      */
     private void UpdateCameraPosition()
     {
-        mainCamera.transform.position = Robot.Instance.currentPos + mainCamOffset;
-        secondCamera.transform.position = Robot.Instance.currentPos + secondCamOffset;
+        mainCamera.transform.position = Robot.Instance.CurrentPos + mainCamOffset;
+        secondCamera.transform.position = Robot.Instance.CurrentPos + secondCamOffset;
     }
 
     /*

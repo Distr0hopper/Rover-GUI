@@ -12,13 +12,14 @@ public class ConnectionController : MonoBehaviour
     private string lars_ip = "192.118.52.31";
 
     public ROSConnection rosConnection { private get; set; }
+    private bool _hasConnection;
     
     // Define method for connection status changed event
     public delegate void ConnectionStatusChangedHandler(bool isConnected);
+    
     // Event for connection status changed
     public event ConnectionStatusChangedHandler OnConnectionStatusChanged;
     
-    private bool _hasConnection;
 
     // Public property for connection status, only this class can set it
     public bool HasConnection
@@ -47,27 +48,27 @@ public class ConnectionController : MonoBehaviour
         HasConnection = !rosConnection.HasConnectionError;
     }
 
-    public void changeRobotIP()
+    public void ChangeRobotIP()
     {
         switch (BasicController.ActiveRobot)
         {
             case BasicController.ACTIVEROBOT.Charlie:
-                setCharlieIP();
+                SetCharlieIP();
                 rosConnection.Connect();
                 break;
             case BasicController.ACTIVEROBOT.Lars:
-                setLarsIP();
+                SetLarsIP();
                 rosConnection.Connect();
                 break;
         }
     }
     
-    private void setCharlieIP()
+    private void SetCharlieIP()
     {
         rosConnection.RosIPAddress = charlie_ip;
     }
     
-    private void setLarsIP()
+    private void SetLarsIP()
     {
         rosConnection.RosIPAddress = lars_ip;
     }

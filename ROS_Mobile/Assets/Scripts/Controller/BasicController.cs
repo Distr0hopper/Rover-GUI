@@ -44,9 +44,9 @@ public class BasicController : MonoBehaviour
         rosConnection.Subscribe<OdometryMsg>("cur_pose", msg =>
         {
             //pMessage = msg.pose.pose.position;
-            robot.currentX = msg.pose.pose.position.x;
-            robot.currentY = msg.pose.pose.position.y;
-            robot.currentZ = msg.pose.pose.position.z;
+            robot.CurrentX = msg.pose.pose.position.x;
+            robot.CurrentY = msg.pose.pose.position.y;
+            robot.CurrentZ = msg.pose.pose.position.z;
             qMessage = msg.pose.pose.orientation;
         });
     }
@@ -88,8 +88,8 @@ public class BasicController : MonoBehaviour
     private void Update3DModelInScene()
     {
         //robot3DModel.transform.localPosition = robot.currentPos;
-        robot3DModel.transform.position = new Vector3(robot.currentPos.x, robot.currentPos.y, robot.currentPos.z); //Make that it is on the ground and not in the air
-        robot3DModel.transform.rotation = robot.currentRot;
+        robot3DModel.transform.position = new Vector3(robot.CurrentPos.x, robot.CurrentPos.y, robot.CurrentPos.z); //Make that it is on the ground and not in the air
+        robot3DModel.transform.rotation = robot.CurrentRot;
     }
 
     /*
@@ -104,7 +104,7 @@ public class BasicController : MonoBehaviour
         angles.z = 0;
         Quaternion robotAngle = new Quaternion();
         robotAngle.eulerAngles = angles;
-        robot.currentRot = robotAngle;
+        robot.CurrentRot = robotAngle;
     }
     
     /*
@@ -113,6 +113,6 @@ public class BasicController : MonoBehaviour
     private void UpdateRobotPosition()
     {
         //robot.currentPos = new Vector3((float) - pMessage.y, (float) pMessage.z, (float) pMessage.x);
-        robot.currentPos = new Vector3((float)- robot.currentY,(float) robot.currentZ, (float) robot.currentX);
+        robot.CurrentPos = new Vector3((float)- robot.CurrentY,(float) robot.CurrentZ, (float) robot.CurrentX);
     }
 }

@@ -146,18 +146,48 @@ namespace myUIController
                 ManualSteeringButtonClicked();
             };
             
-            autoDriveModeButton.clicked += () => { SetAutoDriveMode(); };
-            manualDriveModeButton.clicked += () => { SetManualDriveMode(); };
+            autoDriveModeButton.clicked += () => { SetOperationMode(OperationMode.autoDrive); };
+            manualDriveModeButton.clicked += () => { SetOperationMode(OperationMode.manualDrive); };
             incrementButton.clicked += () => { IncrementDuration(); };
             decrementButton.clicked += () => { DecrementDuration(); };
             
             switchViewButton.clicked += () => { SwitchView(); };
             
             //Method when Dropdown Menue is clicked
-            changeRobotDropdown.RegisterValueChangedCallback(evt => {OnDropdownValueChanged(evt.newValue); });
+            changeRobotDropdown.RegisterValueChangedCallback(evt => {ChangeActiveRobotDropdown(evt.newValue); });
 
             connectionController.OnConnectionStatusChanged += HandleConnectionStatusChanged;
             StartCoroutine(InitializeAfterLayout());
+        }
+        
+        /*
+         * Method to reset the UI to the default state, needed when active robot switched
+         */
+        public void ResetUI()
+        {
+            //Reset the Operation Mode and show the auto drive panel
+            _operationMode = OperationMode.autoDrive;
+            SetOperationMode(_operationMode);
+            
+            //Reset the Marker to the position of the robot
+            marker.transform.position = new Vector3(Robot.Instance.CurrentPos.x, 0.75f, Robot.Instance.CurrentPos.z);
+            
+            //Reset the Distance Label
+            distanceLabel.text = "0 m";
+            
+            //Reset the Arrival Label
+            arrivalLabel.text = "0 m";
+            
+            //Reset the Active View to the Main View
+            if (!isMainActive)
+                SwitchView();
+            
+            //Reset the Duration 
+            durationLabel.text = "5";
+            Robot.Instance.Duration = 5;
+            //Reset the FOV
+            
+            //Reset the Camera Rotation
         }
         
         /*
@@ -185,11 +215,12 @@ namespace myUIController
         /*
          * Change the active robot depending on the selected value in the dropdown menu
          */
-        private void OnDropdownValueChanged(Enum newValue)
+        private void ChangeActiveRobotDropdown(Enum newValue)
         {
             BasicController.ACTIVEROBOT selectedRobot = (BasicController.ACTIVEROBOT) newValue;
             BasicController.ActiveRobot = selectedRobot;
-            connectionController.changeRobotIP();
+            connectionController.ChangeRobotIP();
+            ResetUI();
         }
         
         /*
@@ -232,9 +263,9 @@ namespace myUIController
                 marker.transform.position = new Vector3(worldPosition.x, 0.75f, worldPosition.z); //Add 0.75f to make above the robot model
 
                 // Set the world coordinates in the robot model
-                Robot.Instance.setGoalInWorldPos(worldPosition);
+                Robot.Instance.SetGoalInWorldPos(worldPosition);
             }
-            calculateDistance(worldPosition);
+            CalculateDistance(worldPosition);
             ChangeStartDrivingButtonColor(true);
             ChangeMarkerColor(true);
             
@@ -243,15 +274,15 @@ namespace myUIController
         /*
          * Calculate the distance between the robot and the goal
          */
-        private void calculateDistance(Vector3 worldPosition)
+        private void CalculateDistance(Vector3 worldPosition)
         {
             // Calculate the distance between the robot and the goal
-            float distance = Vector3.Distance(Robot.Instance.currentPos, worldPosition);
+            float distance = Vector3.Distance(Robot.Instance.CurrentPos, worldPosition);
             Debug.Log("Distance: " + distance + " m");
-            updateDistanceLabel(distance);
+            UpdateDistanceLabel(distance);
         }
         
-        private void updateDistanceLabel(float distance)
+        private void UpdateDistanceLabel(float distance)
         {
             // The distance only in 2 decimal places
             distance = (float) Math.Round(distance, 2);
@@ -290,6 +321,9 @@ namespace myUIController
             }
         }
         
+        /*
+         * Change the color of the marker depending on if it is a new goal or not
+         */
         private void ChangeMarkerColor(bool newGoal)
         {
             if (newGoal)
@@ -369,7 +403,7 @@ namespace myUIController
          */
         private void IncrementDuration()
         {
-            Robot.Instance.incrementSpeed();
+            Robot.Instance.IncrementSpeed();
             UpdateDurationLabelInView();
         }
         
@@ -378,7 +412,7 @@ namespace myUIController
          */
         private void DecrementDuration()
         {
-            Robot.Instance.decrementSpeed();
+            Robot.Instance.DecrementSpeed();
           UpdateDurationLabelInView();
         }
         
@@ -389,7 +423,25 @@ namespace myUIController
         {
             durationLabel.text = Robot.Instance.Duration.ToString(); 
         }
-
+        
+        /*
+         * Change the Operation Mode 
+         */
+        private void SetOperationMode(OperationMode mode)
+        {
+            if (mode == OperationMode.autoDrive)
+            {
+                _operationMode = OperationMode.autoDrive;
+                SetAutoDriveMode();
+            }
+            else if (mode == OperationMode.manualDrive)
+            {
+                _operationMode = OperationMode.manualDrive;
+                SetManualDriveMode();
+            }
+            ChangeOperationButtonColor();
+        }
+            
         /*
          * Show the manual drive panel when clicked on the manual drive mode button
          */
@@ -397,8 +449,6 @@ namespace myUIController
         {
             manualDrivePanel.style.display = DisplayStyle.Flex;
             autoDrivePanel.style.display = DisplayStyle.None;
-            _operationMode = OperationMode.manualDrive;
-            ChangeButtonColor();
         }
         
         /*
@@ -408,15 +458,13 @@ namespace myUIController
         {
             autoDrivePanel.style.display = DisplayStyle.Flex;
             manualDrivePanel.style.display = DisplayStyle.None;
-            _operationMode = OperationMode.autoDrive;
-            ChangeButtonColor();
         }
         
         /*
          * Change the background color of the active mode
          */
         
-        private void ChangeButtonColor()
+        private void ChangeOperationButtonColor()
         {
             if (_operationMode == OperationMode.autoDrive)
             {

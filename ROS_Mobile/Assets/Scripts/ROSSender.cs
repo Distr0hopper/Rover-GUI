@@ -33,7 +33,7 @@ public class ROSSender : MonoBehaviour
     private void SendPointToDrive()
     {
         // Get the coordinates where it wants to drive from Robot Model
-        Vector3 worldCoordinates = Robot.Instance.getGoalInWorldPos();
+        Vector3 worldCoordinates = Robot.Instance.GetGoalInWorldPos();
         var vector3Message = new PointMsg
         {
             x = worldCoordinates.x, // Extract the X coordinate from the GameObject
@@ -43,8 +43,8 @@ public class ROSSender : MonoBehaviour
         
         // Convert the Vector3 to a ROS message (geometry_message::PoseStamped), end orientation is the orientation while driving to the goal
         PoseStampedMsg messageToRos = ROSUtils.pointToPoseMsg(vector3Message);
-        Robot.Instance.orientationX = messageToRos.pose.position.x;
-        Robot.Instance.orientationY = messageToRos.pose.position.y;
+        Robot.Instance.OrientationX = messageToRos.pose.position.x;
+        Robot.Instance.OrientationY = messageToRos.pose.position.y;
 
         Debug.Log(messageToRos);
         // Publish the message to the ROS network
@@ -67,8 +67,8 @@ public class ROSSender : MonoBehaviour
         moveCommandMsg.direction = (sbyte)Robot.Instance.Direction;
         moveCommandMsg.duration = new DurationMsg(Robot.Instance.Duration, 0);
         rosConnection.Publish(stear_TopicName, moveCommandMsg);
-        Robot.Instance.orientationX = Robot.Instance.currentX;
-        Robot.Instance.orientationY = Robot.Instance.currentY;
+        Robot.Instance.OrientationX = Robot.Instance.CurrentX;
+        Robot.Instance.OrientationY = Robot.Instance.CurrentY;
     }
     
 }
