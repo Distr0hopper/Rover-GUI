@@ -44,6 +44,9 @@ public class CameraController : MonoBehaviour
         m_inreaseFOV.clicked += () => { ChangeFOV(-5); }; // If you press FOV - you want to "zoom out"
     }
 
+    /*
+     * Get The camera objects from the scene at start up
+     */
     void Start()
     {
         foreach (var camera in Camera.allCameras)
@@ -135,11 +138,14 @@ public class CameraController : MonoBehaviour
 
     void ChangeFOV(int number)
     {
-        // Main Camera is orthographic, so it has no FOV. Therefore change the height (y) of the camera
+        // If the MainView is active, the Birdseye Camera is rendered to it 
         if (UIController.isMainActive)
         {
-            float numberDouble = number < 0 ? -0.5f : 0.5f;
-            mainCamOffset.y += numberDouble;
+            // Step size of 5 is to much, so use .5 steps instead in the orthographic camera (divide by 10)
+            float numbAsFloat = number / 10f; 
+            // Change the height of the camera
+            //mainCamOffset.y += numbAsFloat;
+            mainCamera.orthographicSize += numbAsFloat;
         }
         else
         {

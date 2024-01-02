@@ -88,7 +88,7 @@ public class BasicController : MonoBehaviour
     private void Update3DModelInScene()
     {
         //robot3DModel.transform.localPosition = robot.currentPos;
-        robot3DModel.transform.position = new Vector3(robot.currentPos.x, -0.1f, robot.currentPos.z); //Make that it is on the ground and not in the air
+        robot3DModel.transform.position = new Vector3(robot.currentPos.x, robot.currentPos.y, robot.currentPos.z); //Make that it is on the ground and not in the air
         robot3DModel.transform.rotation = robot.currentRot;
     }
 

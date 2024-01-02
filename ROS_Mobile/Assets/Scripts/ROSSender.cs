@@ -65,7 +65,7 @@ public class ROSSender : MonoBehaviour
         } else moveCommandMsg.stop = false;
         
         moveCommandMsg.direction = (sbyte)Robot.Instance.Direction;
-        moveCommandMsg.duration = new DurationMsg(Robot.Instance.Duration);
+        moveCommandMsg.duration = new DurationMsg(Robot.Instance.Duration, 0);
         rosConnection.Publish(stear_TopicName, moveCommandMsg);
         Robot.Instance.orientationX = Robot.Instance.currentX;
         Robot.Instance.orientationY = Robot.Instance.currentY;

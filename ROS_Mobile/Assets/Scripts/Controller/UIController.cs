@@ -50,15 +50,19 @@ namespace myUIController
         [SerializeField] public RenderTexture mainViewTexture;
         [SerializeField] public RenderTexture secondViewTexture;
         public static bool isMainActive = true;
+        [HideInInspector] public UIDocument UIDocument { private get;  set; }
+        public CameraController cameraController { private get;  set; }
+        public ConnectionController connectionController { private get; set; }
+        [SerializeField] public GameObject arrow;
         
         
         #endregion
 
         #region Private Properties
-        [HideInInspector] public UIDocument UIDocument { private get;  set; }
-        public CameraController cameraController { private get;  set; }
+        
         private Vector3 clickPosition;
-        public ConnectionController connectionController { private get; set; }
+        private Color blueButtonColor = new Color(0.0f, 0.121f, 1f);
+        private Color greenButtonColor = new Color(0.0f, 0.7119f, 0.1031f);
         
         #endregion
 
@@ -67,6 +71,18 @@ namespace myUIController
         // Event is triggered when Button is Clicked
         public static event Action OnStartDriving;
         public static event Action OnManualSteering;
+
+        #endregion
+
+        #region ENUMS
+
+        private enum OperationMode
+        {
+            autoDrive,
+            manualDrive
+        }
+
+        private OperationMode _operationMode = OperationMode.autoDrive;
 
         #endregion
 
@@ -101,11 +117,13 @@ namespace myUIController
 
             // Clicked methods for button //
             driveButton.clicked += () => { StartDrivingButtonClicked(); };
+            driveButton.SetEnabled(false); //Cannot be clicked at beginning, need to set goal first 
             
             stopButton.clicked += () =>
             {
                 SetStearingInformation(stopButton);
                 ManualSteeringButtonClicked();
+                FlashStopButton();
             };
             forwardButton.clicked += () =>
             {
@@ -211,12 +229,15 @@ namespace myUIController
             if (groundPlane.Raycast(ray, out float enter))
             {
                 worldPosition = ray.GetPoint(enter);
-                marker.transform.position = new Vector3(worldPosition.x, worldPosition.y, worldPosition.z);
+                marker.transform.position = new Vector3(worldPosition.x, 0.75f, worldPosition.z); //Add 0.75f to make above the robot model
 
                 // Set the world coordinates in the robot model
                 Robot.Instance.setGoalInWorldPos(worldPosition);
             }
             calculateDistance(worldPosition);
+            ChangeStartDrivingButtonColor(true);
+            ChangeMarkerColor(true);
+            
         }
         
         /*
@@ -247,6 +268,64 @@ namespace myUIController
         private void StartDrivingButtonClicked()
         {
             OnStartDriving?.Invoke();
+            ChangeStartDrivingButtonColor(false);
+            ChangeMarkerColor(false);
+        }
+        
+        /*
+         * Change the color of the Start Driving button to grey, so it can't be clicked again until a new goal is set
+         */
+        public void ChangeStartDrivingButtonColor(bool newGoal)
+        {
+            if (newGoal)
+            { 
+                driveButton.SetEnabled(true);
+                driveButton.style.backgroundColor = new StyleColor(blueButtonColor);
+            }
+            else
+            {
+            driveButton.style.backgroundColor = new StyleColor(Color.grey);
+            //Make the button unclickable
+            driveButton.SetEnabled(false);
+            }
+        }
+        
+        private void ChangeMarkerColor(bool newGoal)
+        {
+            if (newGoal)
+            {
+            arrow.GetComponent<MeshRenderer>().material.color = Color.red;
+            }
+            else
+            {
+            arrow.GetComponent<MeshRenderer>().material.color = Color.green;
+            }
+        }
+        
+        /*
+         * Event listener, waiting for a Coroutine to be started to flash the stop button
+         */
+        public void FlashStopButton()
+        {
+            StartCoroutine(FlashButtonCoroutine(stopButton, 3, Color.black, 0.5f));
+        }
+        
+        /*
+         * Coroutine to flash the stop button. It flashes 3 times in black with a duration of 0.5 seconds
+         */
+        private IEnumerator FlashButtonCoroutine(Button button, int flashes, Color flashColor, float duration)
+        {
+            Color originalColor = button.resolvedStyle.backgroundColor; // Store original color
+            for (int i = 0; i < flashes; i++)
+            {
+                // Change to flash color
+                button.style.backgroundColor = flashColor;
+                yield return new WaitForSeconds(duration / 2);
+
+                // Revert to original color
+                button.style.backgroundColor = originalColor;
+                yield return new WaitForSeconds(duration / 2);
+            }
         }
 
         /*
@@ -318,6 +397,8 @@ namespace myUIController
         {
             manualDrivePanel.style.display = DisplayStyle.Flex;
             autoDrivePanel.style.display = DisplayStyle.None;
+            _operationMode = OperationMode.manualDrive;
+            ChangeButtonColor();
         }
         
         /*
@@ -326,7 +407,27 @@ namespace myUIController
         private void SetAutoDriveMode()
         {
             autoDrivePanel.style.display = DisplayStyle.Flex;
-            manualDrivePanel.style.display = DisplayStyle.None; 
+            manualDrivePanel.style.display = DisplayStyle.None;
+            _operationMode = OperationMode.autoDrive;
+            ChangeButtonColor();
+        }
+        
+        /*
+         * Change the background color of the active mode
+         */
+        
+        private void ChangeButtonColor()
+        {
+            if (_operationMode == OperationMode.autoDrive)
+            {
+                autoDriveModeButton.style.backgroundColor = new StyleColor(greenButtonColor);
+                manualDriveModeButton.style.backgroundColor = new StyleColor(blueButtonColor);
+            }
+            else if (_operationMode == OperationMode.manualDrive)
+            {
+                manualDriveModeButton.style.backgroundColor = new StyleColor(greenButtonColor);
+                autoDriveModeButton.style.backgroundColor = new StyleColor(blueButtonColor);
+            }
         }
         
         /*
