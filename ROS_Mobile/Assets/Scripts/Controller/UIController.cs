@@ -32,6 +32,7 @@ namespace myUIController
         private Label durationLabel;
         private Label distanceLabel;
         private Label arrivalLabel;
+        private static Label zoomDistanceLabel;
 
         private EnumField changeRobotDropdown;
 
@@ -63,6 +64,7 @@ namespace myUIController
         private Vector3 clickPosition;
         private Color blueButtonColor = new Color(0.0f, 0.121f, 1f);
         private Color greenButtonColor = new Color(0.0f, 0.7119f, 0.1031f);
+        private static float maxGuiClickDistance = 4f;
         
         #endregion
 
@@ -110,6 +112,7 @@ namespace myUIController
             connectionState = root.Q<VisualElement>("ConnectionState");
             distanceLabel = root.Q<Label>("DistanceLabel");
             arrivalLabel = root.Q<Label>("ArrivalLabel");  
+            zoomDistanceLabel = root.Q<Label>("ZoomDistanceLabel");
 
             
             
@@ -125,6 +128,8 @@ namespace myUIController
                 SetStearingInformation(stopButton);
                 ManualSteeringButtonClicked();
                 FlashStopButton();
+                ChangeMarkerColor(false);
+                ChangeStartDrivingButton(true);
             };
             forwardButton.clicked += () =>
             {
@@ -271,9 +276,8 @@ namespace myUIController
                 Robot.Instance.SetGoalInWorldPos(worldPosition);
             }
             CalculateDistance(worldPosition);
-            ChangeStartDrivingButtonColor(true);
-            ChangeMarkerColor(true);
-            
+            ChangeStartDrivingButton(true);
+            ChangeMarkerColor(false);
         }
         
         /*
@@ -304,16 +308,16 @@ namespace myUIController
         private void StartDrivingButtonClicked()
         {
             OnStartDriving?.Invoke();
-            ChangeStartDrivingButtonColor(false);
-            ChangeMarkerColor(false);
+            ChangeStartDrivingButton(false);
+            ChangeMarkerColor(true);
         }
         
         /*
-         * Change the color of the Start Driving button to grey, so it can't be clicked again until a new goal is set
+         * Change the state and the color of the Start Driving button to grey, so it can't be clicked again until a new goal is set
          */
-        public void ChangeStartDrivingButtonColor(bool newGoal)
+        public void ChangeStartDrivingButton(bool setActive)
         {
-            if (newGoal)
+            if (setActive)
             { 
                 driveButton.SetEnabled(true);
                 driveButton.style.backgroundColor = new StyleColor(blueButtonColor);
@@ -329,15 +333,15 @@ namespace myUIController
         /*
          * Change the color of the marker depending on if it is a new goal or not
          */
-        private void ChangeMarkerColor(bool newGoal)
+        private void ChangeMarkerColor(bool setActive)
         {
-            if (newGoal)
+            if (setActive)
             {
-            arrow.GetComponent<MeshRenderer>().material.color = Color.red;
+            arrow.GetComponent<MeshRenderer>().material.color = Color.green;
             }
             else
             {
-            arrow.GetComponent<MeshRenderer>().material.color = Color.green;
+            arrow.GetComponent<MeshRenderer>().material.color = Color.red;
             }
         }
         
@@ -346,7 +350,7 @@ namespace myUIController
          */
         public void FlashStopButton()
         {
-            StartCoroutine(FlashButtonCoroutine(stopButton, 3, Color.black, 0.5f));
+            StartCoroutine(FlashButtonCoroutine(stopButton, 3, Color.yellow, 0.5f));
         }
         
         /*
@@ -503,7 +507,23 @@ namespace myUIController
             // Swap active camera which renders the onto the mainView
             cameraController.SwapCamera();
         }
-
+        
+        /*
+         * Update the zoom distance label in the UI with the zoom distance of the robot model
+         */
+        public static void UpdateZoomDistanceLabel(float changedDistance, bool reset = false)
+        {
+            if (!reset)
+            {
+                maxGuiClickDistance += changedDistance;
+            }
+            else
+            {
+                maxGuiClickDistance = 4f;
+            }
+            zoomDistanceLabel.text = maxGuiClickDistance.ToString() + " m";
+        }
+       
         #region Helper Methods
         /*
          * Swap the main and second view textures

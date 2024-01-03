@@ -23,6 +23,7 @@ public class CameraController : MonoBehaviour
     private Camera mainCamera;
     private Camera secondCamera;
 
+    // Initial values for the cameras (used for reset)
     private float secondCamStartFOV = 90f;
     private float mainCamStartSize = 5f;
     private Vector3 secondCamStartRot = new Vector3(0.97f, 0f, 0f);
@@ -58,7 +59,7 @@ public class CameraController : MonoBehaviour
         resetButton = root.Q<Button>("ResetButton");
         m_decreaseFOV.clicked += () => { ChangeFOV(5); ShowResetButton();}; // If you press FOV + you want to "zoom in"
         m_inreaseFOV.clicked += () => { ChangeFOV(-5); ShowResetButton();}; // If you press FOV - you want to "zoom out"
-        resetButton.clicked += () => { ResetCameraRotation(); ResetCameraFOV(); HideResetButton();};
+        resetButton.clicked += () => { ResetCameraRotation(); ResetCameraFOV(); HideResetButton(); UIController.UpdateZoomDistanceLabel(0,true);};
     }
 
     /*
@@ -171,7 +172,8 @@ public class CameraController : MonoBehaviour
     }
     
     /*
-     * Check if the joystick is moved
+     * Check if the joystick is moved. Expensive Method, since its always polling.
+     * TODO: Change to event based
      */
     private bool InputDetected()
     {
@@ -196,6 +198,7 @@ public class CameraController : MonoBehaviour
         {
             secondCamera.fieldOfView += number;
         }
+        UIController.UpdateZoomDistanceLabel(number / 10f);
     }
     
     /*
