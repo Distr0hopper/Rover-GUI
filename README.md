@@ -9,4 +9,7 @@ Graphical User Interface for controlling a Mars Rover. Visualizing sensordata vi
 * Multiple Robots can be controlled by changing the Dropdown at the top.
 * Visualizing Connection-State. Watchdog, Battery-Status and more will be implemented soon.
 * Manual Drive Mode to controll the Robot via Forward, Backward, Left and Right commands. All manual-steering commands in seconds now (e.g. 5 Seconds Forward). Left and right will be given at angle soon.
-* Mission-modes will follow soon. 
+* Mission-modes will follow soon.
+
+# Diagramm 
+![Unity-Class-Diagramm](https://github.com/Distr0hopper/Rover-GUI/assets/100717485/6b3b3917-e0ee-4737-945d-11e3d806e5c6)
