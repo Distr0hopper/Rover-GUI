@@ -110,6 +110,7 @@ namespace myUIController
             connectionState = root.Q<VisualElement>("ConnectionState");
             distanceLabel = root.Q<Label>("DistanceLabel");
             arrivalLabel = root.Q<Label>("ArrivalLabel");  
+
             
             
             // Click on mainview, screenpoint is converted to worldpoint
@@ -145,6 +146,7 @@ namespace myUIController
                 SetStearingInformation(rightButton);
                 ManualSteeringButtonClicked();
             };
+            
             
             autoDriveModeButton.clicked += () => { SetOperationMode(OperationMode.autoDrive); };
             manualDriveModeButton.clicked += () => { SetOperationMode(OperationMode.manualDrive); };
@@ -185,9 +187,12 @@ namespace myUIController
             //Reset the Duration 
             durationLabel.text = "5";
             Robot.Instance.Duration = 5;
+            
             //Reset the FOV
+            cameraController.ResetCameraFOV();
             
             //Reset the Camera Rotation
+            cameraController.ResetCameraRotation();
         }
         
         /*

@@ -12,23 +12,38 @@ public class CameraController : MonoBehaviour
 
     private Button m_inreaseFOV;
     private Button m_decreaseFOV;
+    private Button resetButton;
     
     #endregion
-    
-    
+
+    #region Private Fields
+
     private Vector2 m_JoystickPointerDownPosition;
     private Vector2 m_JoystickDelta; // Between -1 and 1
-    
-    [SerializeField] private Vector3 mainCamOffset;
-    [SerializeField] private Vector3 secondCamOffset;
-    [HideInInspector] public UIDocument UIDocument { private get; set; }
-    
-  
-    public Camera activeMainUICamera { get; private set; }
     private Camera mainCamera;
     private Camera secondCamera;
+
+    private float secondCamStartFOV = 90f;
+    private float mainCamStartSize = 5f;
+    private Vector3 secondCamStartRot = new Vector3(0.97f, 0f, 0f);
+    private Vector3 mainCamStartRot = new Vector3(90f, 0f, 0f);
     
-    [FormerlySerializedAs("worldObjectPushStrength")] public float rotationSpeed = 1.25f;
+    #endregion
+
+    #region Public Fields
+
+    public Camera activeMainUICamera { get; private set; }
+    public float rotationSpeed = 1.25f;
+    [HideInInspector] public UIDocument UIDocument { private get; set; }
+
+    #endregion
+
+    #region Serialized Fields
+
+    [SerializeField] private Vector3 mainCamOffset;
+    [SerializeField] private Vector3 secondCamOffset;
+
+    #endregion
 
     void OnEnable()
     {
@@ -40,8 +55,10 @@ public class CameraController : MonoBehaviour
         m_JoystickHandle.RegisterCallback<PointerDownEvent>(OnPointerDown);
         m_JoystickHandle.RegisterCallback<PointerUpEvent>(OnPointerUp);
         m_JoystickHandle.RegisterCallback<PointerMoveEvent>(OnPointerMove);
-        m_decreaseFOV.clicked += () => { ChangeFOV(5); }; // If you press FOV + you want to "zoom in"
-        m_inreaseFOV.clicked += () => { ChangeFOV(-5); }; // If you press FOV - you want to "zoom out"
+        resetButton = root.Q<Button>("ResetButton");
+        m_decreaseFOV.clicked += () => { ChangeFOV(5); ShowResetButton();}; // If you press FOV + you want to "zoom in"
+        m_inreaseFOV.clicked += () => { ChangeFOV(-5); ShowResetButton();}; // If you press FOV - you want to "zoom out"
+        resetButton.clicked += () => { ResetCameraRotation(); ResetCameraFOV(); HideResetButton();};
     }
 
     /*
@@ -70,6 +87,7 @@ public class CameraController : MonoBehaviour
 
         if (InputDetected())
         {
+            ShowResetButton(); //Show the reset button if the joystick is moved
             var rotationY = GetJoystickInput(out var rotationQuat);
             // Cameras are rotated differently since Main Camera (Birdseye view) is a orthographic camera and the other camera is perspective
             if (UIController.isMainActive)
@@ -120,7 +138,28 @@ public class CameraController : MonoBehaviour
         currentRotation.z = 0; // Lock the Z-axis rotation
         activeMainUICamera.transform.eulerAngles = currentRotation;
     }
-
+    
+    /*
+     * Reset the camera FOV to its initial value
+     */
+    public void ResetCameraFOV()
+    {
+        mainCamera.orthographicSize = mainCamStartSize;
+        secondCamera.fieldOfView = secondCamStartFOV;
+    }
+    
+    /*
+     * Reset the camera rotation to its initial value
+     */
+    public void ResetCameraRotation()
+    {
+        mainCamera.transform.rotation = Quaternion.Euler(mainCamStartRot);
+        secondCamera.transform.rotation = Quaternion.Euler(secondCamStartRot);
+    }
+    
+    /*
+     * Get the input from the joystick and return the rotation value
+     */
     private float GetJoystickInput(out Quaternion rotationQuat)
     {
         float rotationX = -m_JoystickDelta.y * rotationSpeed;
@@ -130,12 +169,18 @@ public class CameraController : MonoBehaviour
         rotationQuat = Quaternion.Euler(rotationX, rotationY, rotationZ);
         return rotationY;
     }
-
+    
+    /*
+     * Check if the joystick is moved
+     */
     private bool InputDetected()
     {
         return m_JoystickDelta != Vector2.zero;
     }
 
+    /*
+     * Change the FOV of the camera
+     */
     void ChangeFOV(int number)
     {
         // If the MainView is active, the Birdseye Camera is rendered to it 
@@ -151,6 +196,22 @@ public class CameraController : MonoBehaviour
         {
             secondCamera.fieldOfView += number;
         }
+    }
+    
+    /*
+     * Show the Reset button only if changed FOV or rotated camera
+     */
+    private void ShowResetButton()
+    {
+        resetButton.style.display = DisplayStyle.Flex;
+    }
+    
+    /*
+     * Hide the Reset button if clicked on it
+     */
+    private void HideResetButton()
+    {
+        resetButton.style.display = DisplayStyle.None;
     }
 
     void OnPointerDown(PointerDownEvent e)
