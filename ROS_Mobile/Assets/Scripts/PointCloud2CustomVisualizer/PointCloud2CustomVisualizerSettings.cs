@@ -267,8 +267,10 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         int maxI = message.data.Length / (int)message.point_step;
         
         // Iterate through all points in the point cloud, may skip some points depending on skipPoints
+        skipPoints = Math.Max(1, skipPoints);
         for (int i = 0; i < maxI; i += skipPoints)
         {
+            i = Math.Min(i, maxI - 1);
             int iPointStep = i * (int)message.point_step;
             var x = BitConverter.ToSingle(message.data, iPointStep + xChannelOffset);
             var y = BitConverter.ToSingle(message.data, iPointStep + yChannelOffset);

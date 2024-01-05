@@ -192,13 +192,16 @@ public class CameraController : MonoBehaviour
             float numbAsFloat = number / 10f; 
             // Change the height of the camera
             //mainCamOffset.y += numbAsFloat;
+            if (mainCamera.orthographicSize <= 1) return;
             mainCamera.orthographicSize += numbAsFloat;
+            UIController.UpdateZoomDistanceLabel(number / 10f);
         }
         else
         {
+            if (secondCamera.fieldOfView <= 0) return;
             secondCamera.fieldOfView += number;
         }
-        UIController.UpdateZoomDistanceLabel(number / 10f);
+        
     }
     
     /*

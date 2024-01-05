@@ -19,6 +19,23 @@ namespace Model
                 return _instance;
             }
         }
+        // 3D Model of the robot in the scene
+        public GameObject Robot3DModel { get; set; }
+        
+        #region ENUMS
+
+        // Current Mode of the robot
+        public enum OperationMode
+        {
+            autoDrive,
+            manualDrive,
+            uwbMission,
+            geoSamaMission
+        }
+
+        public OperationMode _operationMode = OperationMode.autoDrive;
+
+        #endregion
         
         public int Duration { get; set; } = 5;
 
@@ -65,6 +82,21 @@ namespace Model
         public Vector3 GetGoalInWorldPos()
         {
             return GoalInWorldPos;
+        }
+
+        public void HideModel()
+        {
+            Robot3DModel.SetActive(false);
+        }
+        
+        public void ShowModel()
+        {
+            Robot3DModel.SetActive(true);
+        }
+
+        public bool IsModelActive()
+        {
+            return Robot3DModel.activeSelf;
         }
 
     }

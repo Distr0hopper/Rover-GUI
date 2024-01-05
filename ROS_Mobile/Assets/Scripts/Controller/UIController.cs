@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Model;
 using UnityEngine;
@@ -15,6 +16,8 @@ namespace myUIController
         private VisualElement secondView; //View which shows Top-Down view of the map
         private VisualElement manualDrivePanel;
         private VisualElement autoDrivePanel;
+        private VisualElement UWBPanel;
+        private VisualElement driveStopPanel;
         private VisualElement connectionState;
         
         private Button driveButton;
@@ -27,7 +30,10 @@ namespace myUIController
         private Button decrementButton;
         private Button autoDriveModeButton;
         private Button manualDriveModeButton;
+        private Button missionModeUWBButton;
+        private Button missionModeGeoSAMAButton;
         private Button switchViewButton;
+        private Button hideModel;
         
         private Label durationLabel;
         private Label distanceLabel;
@@ -76,18 +82,6 @@ namespace myUIController
 
         #endregion
 
-        #region ENUMS
-
-        private enum OperationMode
-        {
-            autoDrive,
-            manualDrive
-        }
-
-        private OperationMode _operationMode = OperationMode.autoDrive;
-
-        #endregion
-
         void Start()
         {
             // Get the elements from the UI
@@ -105,14 +99,19 @@ namespace myUIController
             durationLabel = root.Q<Label>("Time");
             autoDriveModeButton = root.Q<Button>("AutoDriveMode");
             manualDriveModeButton = root.Q<Button>("ManualDriveMode");
+            missionModeUWBButton = root.Q<Button>("MissionModeUWB");
+            missionModeGeoSAMAButton = root.Q<Button>("MissionModeGeoSAMA");
             manualDrivePanel = root.Q<VisualElement>("ManualDrivePanel");
             autoDrivePanel = root.Q<VisualElement>("AutoDrivePanel");
+            UWBPanel = root.Q<VisualElement>("UWBPanel");
+            driveStopPanel = root.Q<VisualElement>("DriveStopPanel");
             switchViewButton = root.Q<Button>("switchView");
             changeRobotDropdown = root.Q<EnumField>("RobotChoice");
             connectionState = root.Q<VisualElement>("ConnectionState");
             distanceLabel = root.Q<Label>("DistanceLabel");
             arrivalLabel = root.Q<Label>("ArrivalLabel");  
             zoomDistanceLabel = root.Q<Label>("ZoomDistanceLabel");
+            hideModel = root.Q<Button>("HideModel");
 
             
             
@@ -153,12 +152,16 @@ namespace myUIController
             };
             
             
-            autoDriveModeButton.clicked += () => { SetOperationMode(OperationMode.autoDrive); };
-            manualDriveModeButton.clicked += () => { SetOperationMode(OperationMode.manualDrive); };
+            autoDriveModeButton.clicked += () => { SetOperationMode(Robot.OperationMode.autoDrive); };
+            manualDriveModeButton.clicked += () => { SetOperationMode(Robot.OperationMode.manualDrive); };
+            missionModeUWBButton.clicked += () => { SetOperationMode(Robot.OperationMode.uwbMission); };
+            missionModeGeoSAMAButton.clicked += () => { SetOperationMode(Robot.OperationMode.geoSamaMission); };
             incrementButton.clicked += () => { IncrementDuration(); };
             decrementButton.clicked += () => { DecrementDuration(); };
             
             switchViewButton.clicked += () => { SwitchView(); };
+            
+            hideModel.clicked += () => { toggleModelVisability() ;};
             
             //Method when Dropdown Menue is clicked
             changeRobotDropdown.RegisterValueChangedCallback(evt => {ChangeActiveRobotDropdown(evt.newValue); });
@@ -173,8 +176,8 @@ namespace myUIController
         public void ResetUI()
         {
             //Reset the Operation Mode and show the auto drive panel
-            _operationMode = OperationMode.autoDrive;
-            SetOperationMode(_operationMode);
+            Robot.Instance._operationMode = Robot.OperationMode.autoDrive;
+            SetOperationMode(Robot.Instance._operationMode);
             
             //Reset the Marker to the position of the robot
             marker.transform.position = new Vector3(Robot.Instance.CurrentPos.x, 0.75f, Robot.Instance.CurrentPos.z);
@@ -198,6 +201,20 @@ namespace myUIController
             
             //Reset the Camera Rotation
             cameraController.ResetCameraRotation();
+        }
+        
+        private void toggleModelVisability()
+        {
+            if (Robot.Instance.IsModelActive())
+            {
+                hideModel.text = "Show 3D Model";
+                Robot.Instance.HideModel();
+            }
+            else
+            {
+                hideModel.text = "Hide 3D Model";
+                Robot.Instance.ShowModel();
+            }
         }
         
         /*
@@ -341,7 +358,7 @@ namespace myUIController
             }
             else
             {
-            arrow.GetComponent<MeshRenderer>().material.color = Color.red;
+            arrow.GetComponent<MeshRenderer>().material.color = Color.white;
             }
         }
         
@@ -436,54 +453,70 @@ namespace myUIController
         /*
          * Change the Operation Mode 
          */
-        private void SetOperationMode(OperationMode mode)
+        private void SetOperationMode(Robot.OperationMode mode)
         {
-            if (mode == OperationMode.autoDrive)
+            if (mode == Robot.OperationMode.autoDrive)
             {
-                _operationMode = OperationMode.autoDrive;
+                Robot.Instance._operationMode = Robot.OperationMode.autoDrive;
                 SetAutoDriveMode();
             }
-            else if (mode == OperationMode.manualDrive)
+            else if (mode == Robot.OperationMode.manualDrive)
             {
-                _operationMode = OperationMode.manualDrive;
+                Robot.Instance._operationMode = Robot.OperationMode.manualDrive;
                 SetManualDriveMode();
+            } 
+            else if (mode == Robot.OperationMode.uwbMission)
+            {
+                Robot.Instance._operationMode = Robot.OperationMode.uwbMission;
+                SetUWBMode();
+            }
+            else if (mode == Robot.OperationMode.geoSamaMission)
+            {
+                Robot.Instance._operationMode = Robot.OperationMode.geoSamaMission;
             }
             ChangeOperationButtonColor();
         }
             
-        /*
-         * Show the manual drive panel when clicked on the manual drive mode button
-         */
+        private void SetPanelDisplay(Robot.OperationMode mode)
+        {
+            manualDrivePanel.style.display = (mode == Robot.OperationMode.manualDrive) ? DisplayStyle.Flex : DisplayStyle.None;
+            autoDrivePanel.style.display = (mode == Robot.OperationMode.autoDrive) ? DisplayStyle.Flex : DisplayStyle.None;
+            UWBPanel.style.display = (mode == Robot.OperationMode.uwbMission) ? DisplayStyle.Flex : DisplayStyle.None;
+            driveStopPanel.style.display = (mode == Robot.OperationMode.manualDrive || mode == Robot.OperationMode.autoDrive) ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
         private void SetManualDriveMode()
         {
-            manualDrivePanel.style.display = DisplayStyle.Flex;
-            autoDrivePanel.style.display = DisplayStyle.None;
+            SetPanelDisplay(Robot.OperationMode.manualDrive);
         }
-        
-        /*
-         * Show the auto drive panel when clicked on the auto drive mode button (manual drive panel is hidden on auto drive mode)
-         */
+
         private void SetAutoDriveMode()
         {
-            autoDrivePanel.style.display = DisplayStyle.Flex;
-            manualDrivePanel.style.display = DisplayStyle.None;
+            SetPanelDisplay(Robot.OperationMode.autoDrive);
         }
-        
-        /*
-         * Change the background color of the active mode
-         */
+
+        private void SetUWBMode()
+        {
+            SetPanelDisplay(Robot.OperationMode.uwbMission);
+        }
         
         private void ChangeOperationButtonColor()
         {
-            if (_operationMode == OperationMode.autoDrive)
+            Robot.OperationMode mode = Robot.Instance._operationMode;
+
+            // Dictionary to map each mode to its corresponding active button
+            Dictionary<Robot.OperationMode, Button> modeToButton = new Dictionary<Robot.OperationMode, Button>
             {
-                autoDriveModeButton.style.backgroundColor = new StyleColor(greenButtonColor);
-                manualDriveModeButton.style.backgroundColor = new StyleColor(blueButtonColor);
-            }
-            else if (_operationMode == OperationMode.manualDrive)
+                { Robot.OperationMode.autoDrive, autoDriveModeButton },
+                { Robot.OperationMode.manualDrive, manualDriveModeButton },
+                { Robot.OperationMode.uwbMission, missionModeUWBButton },
+                { Robot.OperationMode.geoSamaMission, missionModeGeoSAMAButton }
+            };
+
+            // Iterate through each mode-button pair
+            foreach (var pair in modeToButton)
             {
-                manualDriveModeButton.style.backgroundColor = new StyleColor(greenButtonColor);
-                autoDriveModeButton.style.backgroundColor = new StyleColor(blueButtonColor);
+                pair.Value.style.backgroundColor = new StyleColor(pair.Key == mode ? greenButtonColor : blueButtonColor);
             }
         }
         

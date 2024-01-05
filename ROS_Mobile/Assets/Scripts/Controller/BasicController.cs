@@ -71,7 +71,7 @@ public class BasicController : MonoBehaviour
         
         
         connectionController.rosConnection = rosConnection;
-        
+        Robot.Instance.Robot3DModel = robot3DModel;
     }
     
     void Update()
