@@ -1,7 +1,8 @@
 # Rover-GUI
 Graphical User Interface for controlling a Mars Rover. Visualizing sensordata via Unity to create a pointcloud and controll the robot inside it.
 
-![image](https://github.com/Distr0hopper/Rover-GUI/assets/100717485/4d9081f4-66c4-4186-8969-30042bbae95f)
+![image](https://github.com/Distr0hopper/Rover-GUI/assets/100717485/abebb3b9-e3c0-4774-a0ae-0ca6ef84cc03)
+
 
 # Functionalities 
 * Change Camera FOV + Direction to look at
