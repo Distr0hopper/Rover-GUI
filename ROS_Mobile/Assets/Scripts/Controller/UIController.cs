@@ -34,6 +34,12 @@ namespace myUIController
         private Button missionModeGeoSAMAButton;
         private Button switchViewButton;
         private Button hideModel;
+        private Button launchButton;
+        private Button trigger1Button;
+        private Button trigger2Button;
+        private Button trigger3Button;
+        private Button trigger4Button;
+        private Button activeTriggerButton;
         
         private Label durationLabel;
         private Label distanceLabel;
@@ -70,6 +76,7 @@ namespace myUIController
         private Vector3 clickPosition;
         private Color blueButtonColor = new Color(0.0f, 0.121f, 1f);
         private Color greenButtonColor = new Color(0.0f, 0.7119f, 0.1031f);
+        private Color disabledButtonColor = new Color(0.26f, 0.26f, 0.26f,1f);
         private static float maxGuiClickDistance = 4f;
         
         #endregion
@@ -112,6 +119,12 @@ namespace myUIController
             arrivalLabel = root.Q<Label>("ArrivalLabel");  
             zoomDistanceLabel = root.Q<Label>("ZoomDistanceLabel");
             hideModel = root.Q<Button>("HideModel");
+            launchButton = root.Q<Button>("LaunchButton");
+            trigger1Button = root.Q<Button>("Trigger1");
+            trigger2Button = root.Q<Button>("Trigger2");
+            trigger3Button = root.Q<Button>("Trigger3");
+            trigger4Button = root.Q<Button>("Trigger4");
+            
 
             
             
@@ -121,6 +134,14 @@ namespace myUIController
             // Clicked methods for button //
             driveButton.clicked += () => { StartDrivingButtonClicked(); };
             driveButton.SetEnabled(false); //Cannot be clicked at beginning, need to set goal first 
+            
+            trigger1Button.clicked += () => { SetActiveTriggerButton(trigger1Button); };
+            trigger2Button.clicked += () => { SetActiveTriggerButton(trigger2Button); };
+            trigger3Button.clicked += () => { SetActiveTriggerButton(trigger3Button); };
+            trigger4Button.clicked += () => { SetActiveTriggerButton(trigger4Button); };
+            
+            launchButton.clicked += () => { LaunchActiveUWB(); };
+            launchButton.SetEnabled(false); //Cannot be clicked at beginning, need to select UWB Sensor first
             
             stopButton.clicked += () =>
             {
@@ -556,8 +577,105 @@ namespace myUIController
             }
             zoomDistanceLabel.text = maxGuiClickDistance.ToString() + " m";
         }
+        
+        /*
+         * Method that checks which Trigger Button was clicked and sets active flag to true so its border color changes to green 
+         */
+        public void SetActiveTriggerButton(Button clickedButton)
+        {
+            if (activeTriggerButton == clickedButton)
+            {
+                // Reset the button state and clear the last clicked button
+                ResetButtonState(clickedButton);
+                activeTriggerButton = null;
+                launchButton.SetEnabled(false);
+                Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.noTrigger;
+            } else
+            {
+                // Reset the state of the previously clicked button
+                if (activeTriggerButton != null)
+                {
+                    ResetButtonState(activeTriggerButton);
+                }
+
+                // Change the border color of the clicked button
+                clickedButton.style.borderBottomColor = Color.green;
+                clickedButton.style.borderTopColor = Color.green;
+                clickedButton.style.borderLeftColor = Color.green;
+                clickedButton.style.borderRightColor = Color.green;
+
+                // Update the last clicked button
+                activeTriggerButton = clickedButton;
+                
+                // Set the active UWB in the robot model
+                SetActiveUWB();
+                
+                // Enable the launch button
+                launchButton.SetEnabled(true);
+                
+                if (activeTriggerButton.style.backgroundColor == disabledButtonColor)
+                {
+                    launchButton.text = "UWB already launched, try again?";
+                    launchButton.style.backgroundColor = new StyleColor(Color.yellow);
+                }
+                else
+                {
+                    launchButton.text = "Launch";
+                    launchButton.style.backgroundColor = new StyleColor(Color.gray);
+                }
+            }
+        }
+
+        public void SetActiveUWB()
+        {
+            if (activeTriggerButton.name == "Trigger1")
+            {
+               Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.trigger1;
+            }
+            else if (activeTriggerButton.name == "Trigger2")
+            {
+                Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.trigger2;
+            }
+            else if (activeTriggerButton.name == "Trigger3")
+            {
+                Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.trigger3;
+            }
+            else if (activeTriggerButton.name == "Trigger4")
+            {
+                Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.trigger4;
+            }
+        }
+        
+        public void LaunchActiveUWB()
+        {
+            if(launchButton.style.backgroundColor == Color.yellow)
+            {
+                launchButton.style.backgroundColor = new StyleColor(Color.green);
+                launchButton.text = "Relaunched UWB";
+                //Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.noTrigger;
+            }
+            //ROSSender.LaunchUWB();
+            // Set the Background color of the launched Button to grey and disable it
+            activeTriggerButton.style.backgroundColor = new StyleColor(disabledButtonColor);
+            //activeTriggerButton.SetEnabled(false);
+            Debug.Log("Launching: " + Robot.Instance.UwbTrigger);
+            launchButton.SetEnabled(false);
+        }
        
         #region Helper Methods
+        
+        /*
+         * Reset Trigger Button State
+         */
+        private void ResetButtonState(Button button)
+        {
+            // Reset the border color of the button
+            button.style.borderBottomColor = Color.clear;
+            button.style.borderTopColor = Color.clear;
+            button.style.borderLeftColor = Color.clear;
+            button.style.borderRightColor = Color.clear;
+        }
+        
         /*
          * Swap the main and second view textures
          */
