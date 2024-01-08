@@ -17,6 +17,7 @@
     border-right-width: 3px;
     border-bottom-width: 3px;
     border-left-width: 3px;
+    transition-duration: 0s;
 }
 
 .ButtonDrive {

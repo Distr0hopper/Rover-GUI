@@ -22,7 +22,7 @@ namespace myUIController
         private VisualElement connectionState;
         private PopupWindow popupWindow;
         
-        private Button driveButton;
+        private Button commandButton;
         private Button stopButton;
         private Button forwardButton;
         private Button backwardButton;
@@ -81,6 +81,7 @@ namespace myUIController
         private Color blueButtonColor = new Color(0.0f, 0.121f, 1f);
         private Color greenButtonColor = new Color(0.0f, 0.7119f, 0.1031f);
         private Color disabledButtonColor = new Color(0.26f, 0.26f, 0.26f,1f);
+        private Color directionButtonColor = new Color(0.7f, 0.7f, 0.7f);
         
         #endregion
 
@@ -97,7 +98,7 @@ namespace myUIController
             // Get the elements from the UI
             var root = UIDocument.rootVisualElement;
             mainView = root.Q<VisualElement>("MainView");
-            driveButton = root.Q<Button>("bStartDrive");
+            commandButton = root.Q<Button>("bStartDrive");
             stopButton = root.Q<Button>("stopButton");
             secondView = root.Q<VisualElement>("secondView");
             forwardButton = root.Q<Button>("fwdButton");
@@ -138,8 +139,8 @@ namespace myUIController
             mainView.RegisterCallback<ClickEvent>(ScreenToWorld);
 
             // Clicked methods for button //
-            driveButton.clicked += () => { StartDrivingButtonClicked(); };
-            driveButton.SetEnabled(false); //Cannot be clicked at beginning, need to set goal first 
+            commandButton.clicked += () => { SendStearingCommand(); };
+            commandButton.SetEnabled(false); //Cannot be clicked at beginning, need to set goal first 
             
             trigger1Button.clicked += () => { SetActiveTriggerButton(trigger1Button); };
             trigger2Button.clicked += () => { SetActiveTriggerButton(trigger2Button); };
@@ -151,8 +152,8 @@ namespace myUIController
             
             startScanButton.clicked += () => { StartScan(); };
             
-            popupWindow.confirmed += () => { popupConfirmed(); };
-            popupWindow.canceled += () => { popupCanceled(); };
+            popupWindow.confirmed += () => { EnableLaunch(); };
+            popupWindow.canceled += () => { DisableLaunch(); };
             
             stopButton.clicked += () =>
             {
@@ -164,28 +165,32 @@ namespace myUIController
             };
             forwardButton.clicked += () =>
             {
+                ChangeManualSteeringButtonColor(forwardButton);
                 SetStearingInformation(forwardButton);
-                ManualSteeringButtonClicked();
+                ChangeStartDrivingButton(true);
             };
             backwardButton.clicked += () =>
             {
+                ChangeManualSteeringButtonColor(backwardButton);
                 SetStearingInformation(backwardButton);
-                ManualSteeringButtonClicked();
+                ChangeStartDrivingButton(true);
             };
             leftButton.clicked += () =>
             {
+                ChangeManualSteeringButtonColor(leftButton);
                 SetStearingInformation(leftButton);
-                ManualSteeringButtonClicked();
+                ChangeStartDrivingButton(true);
             };
             rightButton.clicked += () =>
             {
+                ChangeManualSteeringButtonColor(rightButton);
                 SetStearingInformation(rightButton);
-                ManualSteeringButtonClicked();
+                ChangeStartDrivingButton(true);
             };
             
             
-            autoDriveModeButton.clicked += () => { SetOperationMode(Robot.OperationMode.autoDrive); };
-            manualDriveModeButton.clicked += () => { SetOperationMode(Robot.OperationMode.manualDrive); };
+            autoDriveModeButton.clicked += () => { SetOperationMode(Robot.OperationMode.autoDrive);  ChangeStartDrivingButton(false);};
+            manualDriveModeButton.clicked += () => { SetOperationMode(Robot.OperationMode.manualDrive);  ChangeStartDrivingButton(false); ChangeManualSteeringButtonColor(null, true); };
             missionModeUWBButton.clicked += () => { SetOperationMode(Robot.OperationMode.uwbMission); };
             missionModeGeoSAMAButton.clicked += () => { SetOperationMode(Robot.OperationMode.geoSamaMission); };
             incrementButton.clicked += () => { IncrementDuration(); };
@@ -364,11 +369,17 @@ namespace myUIController
          * Event listener:
          * Waiting for button click event to start driving to the goal
          */
-        private void StartDrivingButtonClicked()
+        private void SendStearingCommand()
         {
+            if (Robot.Instance._operationMode == Robot.OperationMode.autoDrive)
+            {
             OnStartDriving?.Invoke();
             ChangeStartDrivingButton(false);
             ChangeMarkerColor(true);
+            } else if (Robot.Instance._operationMode == Robot.OperationMode.manualDrive)
+            {
+                ManualSteeringButtonClicked();
+            }
         }
         
         /*
@@ -378,29 +389,14 @@ namespace myUIController
         {
             if (setActive)
             { 
-                driveButton.SetEnabled(true);
-                driveButton.style.backgroundColor = new StyleColor(blueButtonColor);
+                commandButton.SetEnabled(true);
+                commandButton.style.backgroundColor = new StyleColor(blueButtonColor);
             }
             else
             {
-            driveButton.style.backgroundColor = new StyleColor(Color.grey);
+            commandButton.style.backgroundColor = new StyleColor(Color.grey);
             //Make the button unclickable
-            driveButton.SetEnabled(false);
-            }
-        }
-        
-        /*
-         * Change the color of the marker depending on if it is a new goal or not
-         */
-        private void ChangeMarkerColor(bool setActive)
-        {
-            if (setActive)
-            {
-            arrow.GetComponent<MeshRenderer>().material.color = Color.green;
-            }
-            else
-            {
-            arrow.GetComponent<MeshRenderer>().material.color = Color.white;
+            commandButton.SetEnabled(false);
             }
         }
         
@@ -432,7 +428,7 @@ namespace myUIController
 
         /*
          * Event listener:
-         * Waiting for any manual steering button to be clicked
+         * Waiting for any manual steering button to be clicked (in ROSSender class)
          */
         private void ManualSteeringButtonClicked()
         {
@@ -520,6 +516,10 @@ namespace myUIController
             ChangeOperationButtonColor();
         }
             
+        /*
+         * Set the panel display depending on the operation mode.
+         * The drive-stop panel is displayed in manual and auto drive mode
+         */
         private void SetPanelDisplay(Robot.OperationMode mode)
         {
             manualDrivePanel.style.display = (mode == Robot.OperationMode.manualDrive) ? DisplayStyle.Flex : DisplayStyle.None;
@@ -547,26 +547,6 @@ namespace myUIController
         private void SetGeoSAMAMode()
         {
             SetPanelDisplay(Robot.OperationMode.geoSamaMission);
-        }
-        
-        private void ChangeOperationButtonColor()
-        {
-            Robot.OperationMode mode = Robot.Instance._operationMode;
-
-            // Dictionary to map each mode to its corresponding active button
-            Dictionary<Robot.OperationMode, Button> modeToButton = new Dictionary<Robot.OperationMode, Button>
-            {
-                { Robot.OperationMode.autoDrive, autoDriveModeButton },
-                { Robot.OperationMode.manualDrive, manualDriveModeButton },
-                { Robot.OperationMode.uwbMission, missionModeUWBButton },
-                { Robot.OperationMode.geoSamaMission, missionModeGeoSAMAButton }
-            };
-
-            // Iterate through each mode-button pair
-            foreach (var pair in modeToButton)
-            {
-                pair.Value.style.backgroundColor = new StyleColor(pair.Key == mode ? greenButtonColor : blueButtonColor);
-            }
         }
         
         /*
@@ -623,7 +603,6 @@ namespace myUIController
                 // Set the active UWB in the robot model
                 SetActiveUWB();
                 
-                
                 if (activeTriggerButton.style.backgroundColor == disabledButtonColor)
                 {
                     //launchButton.text = "UWB already launched, try again?";
@@ -638,6 +617,9 @@ namespace myUIController
             }
         }
 
+        /*
+         * Set the active UWB in the robot model
+         */
         public void SetActiveUWB()
         {
             if (activeTriggerButton.name == "Trigger1")
@@ -658,14 +640,12 @@ namespace myUIController
             }
         }
         
+        /*
+         * Launch the active UWB and disable the launch button
+         */
         public void LaunchActiveUWB()
         {
-            if(launchButton.style.backgroundColor == Color.yellow)
-            {
-                launchButton.style.backgroundColor = new StyleColor(Color.green);
-                launchButton.text = "Relaunched UWB";
-                //Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.noTrigger;
-            }
+            //TODO: Send message to ROS to launch the UWB
             //ROSSender.LaunchUWB();
             // Set the Background color of the launched Button to grey and disable it
             activeTriggerButton.style.backgroundColor = new StyleColor(disabledButtonColor);
@@ -674,11 +654,87 @@ namespace myUIController
             launchButton.SetEnabled(false);
         }
 
+        /*
+         * Start the coroutine to fill the progress bar
+         */
         public void StartScan()
         {
+            // TODO: Send message to ROS to start the scan 
             StartCoroutine(FillProgressBar());
         }
         
+        
+        /*
+         * If the popup is confirmed, enable the launch button again
+         */
+        private void EnableLaunch()
+        {
+            launchButton.SetEnabled(true);
+            popupWindow.style.display = DisplayStyle.None;
+        }
+        
+        /*
+         * If the popup is canceled, disable the launch button
+         */
+        private void DisableLaunch()
+        {
+            launchButton.SetEnabled(false);
+            popupWindow.style.display = DisplayStyle.None;
+        }
+
+        #region USS Styling Methods
+
+        /*
+         * Active Manual Stearing Button in Blue and the others in Grey.
+         * When reset is true, all buttons are set to grey.
+         */
+        public void ChangeManualSteeringButtonColor(Button clickedButton, bool reset = false)
+        {
+            Button[] buttons = { forwardButton, backwardButton, leftButton, rightButton };
+            if (reset)
+            {
+                foreach (Button button in buttons)
+                {
+                    button.style.backgroundColor = new StyleColor(directionButtonColor);
+                }
+            }
+            else
+            {
+                foreach (Button button in buttons)
+                {
+                    button.style.backgroundColor = (button == clickedButton) ? new StyleColor(blueButtonColor) : new StyleColor(directionButtonColor);
+                }
+            }
+
+
+        }
+        
+        /*
+         * Change the Color of the Modes at the top of the GUI. The active mode is green, the others are blue.
+         */
+        private void ChangeOperationButtonColor()
+        {
+            Robot.OperationMode mode = Robot.Instance._operationMode;
+
+            // Dictionary to map each mode to its corresponding active button
+            Dictionary<Robot.OperationMode, Button> modeToButton = new Dictionary<Robot.OperationMode, Button>
+            {
+                { Robot.OperationMode.autoDrive, autoDriveModeButton },
+                { Robot.OperationMode.manualDrive, manualDriveModeButton },
+                { Robot.OperationMode.uwbMission, missionModeUWBButton },
+                { Robot.OperationMode.geoSamaMission, missionModeGeoSAMAButton }
+            };
+
+            // Iterate through each mode-button pair
+            foreach (var pair in modeToButton)
+            {
+                pair.Value.style.backgroundColor = new StyleColor(pair.Key == mode ? greenButtonColor : blueButtonColor);
+            }
+        }
+        
+        /*
+         * Coroutine to fill the progress bar
+         */
         private IEnumerator FillProgressBar()
         {
             scanProgressBar.value = 0;
@@ -691,23 +747,27 @@ namespace myUIController
                 scanProgressBar.value = (timePassed / duration) * scanProgressBar.highValue;
                 yield return null;
             }
-            
             scanProgressBar.value = scanProgressBar.highValue;
             // Set text to "Scan finished" from the progress bar
             scanProgressBar.title = "Scan finished";
         }
         
-        private void popupConfirmed()
+        /*
+         * Change the color of the marker depending on if it is a new goal or not
+         */
+        private void ChangeMarkerColor(bool setActive)
         {
-            launchButton.SetEnabled(true);
-            popupWindow.style.display = DisplayStyle.None;
+            if (setActive)
+            {
+                arrow.GetComponent<MeshRenderer>().material.color = Color.green;
+            }
+            else
+            {
+                arrow.GetComponent<MeshRenderer>().material.color = Color.white;
+            }
         }
-        
-        private void popupCanceled()
-        {
-            launchButton.SetEnabled(false);
-            popupWindow.style.display = DisplayStyle.None;
-        }
+
+        #endregion
        
         #region Helper Methods
         
