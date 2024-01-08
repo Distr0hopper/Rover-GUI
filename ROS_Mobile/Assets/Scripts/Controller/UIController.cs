@@ -14,10 +14,11 @@ namespace myUIController
         #region UIElements
         private VisualElement mainView; //View which shows RenderTexture from Camera 
         private VisualElement secondView; //View which shows Top-Down view of the map
-        private VisualElement manualDrivePanel;
-        private VisualElement autoDrivePanel;
-        private VisualElement UWBPanel;
         private VisualElement driveStopPanel;
+        private VisualElement autoDrivePanel;
+        private VisualElement manualDrivePanel;
+        private VisualElement UWBPanel;
+        private VisualElement GeoSAMAPanel;
         private VisualElement connectionState;
         
         private Button driveButton;
@@ -40,13 +41,15 @@ namespace myUIController
         private Button trigger3Button;
         private Button trigger4Button;
         private Button activeTriggerButton;
+        private Button startScanButton;
         
         private Label durationLabel;
         private Label distanceLabel;
         private Label arrivalLabel;
-        private static Label zoomDistanceLabel;
 
         private EnumField changeRobotDropdown;
+        
+        private ProgressBar scanProgressBar;
 
         #endregion
 
@@ -77,7 +80,6 @@ namespace myUIController
         private Color blueButtonColor = new Color(0.0f, 0.121f, 1f);
         private Color greenButtonColor = new Color(0.0f, 0.7119f, 0.1031f);
         private Color disabledButtonColor = new Color(0.26f, 0.26f, 0.26f,1f);
-        private static float maxGuiClickDistance = 4f;
         
         #endregion
 
@@ -111,21 +113,24 @@ namespace myUIController
             manualDrivePanel = root.Q<VisualElement>("ManualDrivePanel");
             autoDrivePanel = root.Q<VisualElement>("AutoDrivePanel");
             UWBPanel = root.Q<VisualElement>("UWBPanel");
+            GeoSAMAPanel = root.Q<VisualElement>("GeoSAMAPanel");
             driveStopPanel = root.Q<VisualElement>("DriveStopPanel");
             switchViewButton = root.Q<Button>("switchView");
             changeRobotDropdown = root.Q<EnumField>("RobotChoice");
             connectionState = root.Q<VisualElement>("ConnectionState");
             distanceLabel = root.Q<Label>("DistanceLabel");
             arrivalLabel = root.Q<Label>("ArrivalLabel");  
-            zoomDistanceLabel = root.Q<Label>("ZoomDistanceLabel");
             hideModel = root.Q<Button>("HideModel");
             launchButton = root.Q<Button>("LaunchButton");
             trigger1Button = root.Q<Button>("Trigger1");
             trigger2Button = root.Q<Button>("Trigger2");
             trigger3Button = root.Q<Button>("Trigger3");
             trigger4Button = root.Q<Button>("Trigger4");
+            startScanButton = root.Q<Button>("StartScan");
+            scanProgressBar = root.Q<ProgressBar>("ScanProgress");
             
-
+            
+            startScanButton.clicked += () => { StartScan(); };
             
             
             // Click on mainview, screenpoint is converted to worldpoint
@@ -196,6 +201,16 @@ namespace myUIController
          */
         public void ResetUI()
         {
+            if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
+            {
+                missionModeUWBButton.style.display = DisplayStyle.None;
+                missionModeGeoSAMAButton.style.display = DisplayStyle.None;
+            }
+            else
+            {
+                missionModeUWBButton.style.display = DisplayStyle.Flex;
+                missionModeGeoSAMAButton.style.display = DisplayStyle.Flex;
+            }
             //Reset the Operation Mode and show the auto drive panel
             Robot.Instance._operationMode = Robot.OperationMode.autoDrive;
             SetOperationMode(Robot.Instance._operationMode);
@@ -265,8 +280,8 @@ namespace myUIController
          */
         private void ChangeActiveRobotDropdown(Enum newValue)
         {
-            BasicController.ACTIVEROBOT selectedRobot = (BasicController.ACTIVEROBOT) newValue;
-            BasicController.ActiveRobot = selectedRobot;
+            Robot.ACTIVEROBOT selectedRobot = (Robot.ACTIVEROBOT) newValue;
+            Robot.Instance.ActiveRobot = selectedRobot;
             connectionController.ChangeRobotIP();
             ResetUI();
         }
@@ -494,6 +509,7 @@ namespace myUIController
             else if (mode == Robot.OperationMode.geoSamaMission)
             {
                 Robot.Instance._operationMode = Robot.OperationMode.geoSamaMission;
+                SetGeoSAMAMode();
             }
             ChangeOperationButtonColor();
         }
@@ -503,6 +519,7 @@ namespace myUIController
             manualDrivePanel.style.display = (mode == Robot.OperationMode.manualDrive) ? DisplayStyle.Flex : DisplayStyle.None;
             autoDrivePanel.style.display = (mode == Robot.OperationMode.autoDrive) ? DisplayStyle.Flex : DisplayStyle.None;
             UWBPanel.style.display = (mode == Robot.OperationMode.uwbMission) ? DisplayStyle.Flex : DisplayStyle.None;
+            GeoSAMAPanel.style.display = (mode == Robot.OperationMode.geoSamaMission) ? DisplayStyle.Flex : DisplayStyle.None;
             driveStopPanel.style.display = (mode == Robot.OperationMode.manualDrive || mode == Robot.OperationMode.autoDrive) ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
@@ -519,6 +536,11 @@ namespace myUIController
         private void SetUWBMode()
         {
             SetPanelDisplay(Robot.OperationMode.uwbMission);
+        }
+
+        private void SetGeoSAMAMode()
+        {
+            SetPanelDisplay(Robot.OperationMode.geoSamaMission);
         }
         
         private void ChangeOperationButtonColor()
@@ -562,21 +584,6 @@ namespace myUIController
             cameraController.SwapCamera();
         }
         
-        /*
-         * Update the zoom distance label in the UI with the zoom distance of the robot model
-         */
-        public static void UpdateZoomDistanceLabel(float changedDistance, bool reset = false)
-        {
-            if (!reset)
-            {
-                maxGuiClickDistance += changedDistance;
-            }
-            else
-            {
-                maxGuiClickDistance = 4f;
-            }
-            zoomDistanceLabel.text = maxGuiClickDistance.ToString() + " m";
-        }
         
         /*
          * Method that checks which Trigger Button was clicked and sets active flag to true so its border color changes to green 
@@ -660,6 +667,29 @@ namespace myUIController
             //activeTriggerButton.SetEnabled(false);
             Debug.Log("Launching: " + Robot.Instance.UwbTrigger);
             launchButton.SetEnabled(false);
+        }
+
+        public void StartScan()
+        {
+            StartCoroutine(FillProgressBar());
+        }
+        
+        private IEnumerator FillProgressBar()
+        {
+            scanProgressBar.value = 0;
+            scanProgressBar.title = "Scanning...";
+            float duration = 5f;
+            float timePassed = 0f;
+            while (timePassed < duration)
+            {
+                timePassed += Time.deltaTime;
+                scanProgressBar.value = (timePassed / duration) * scanProgressBar.highValue;
+                yield return null;
+            }
+            
+            scanProgressBar.value = scanProgressBar.highValue;
+            // Set text to "Scan finished" from the progress bar
+            scanProgressBar.title = "Scan finished";
         }
        
         #region Helper Methods

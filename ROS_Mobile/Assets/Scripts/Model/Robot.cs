@@ -53,6 +53,14 @@ namespace Model
         }
 
         public UWBTRIGGER UwbTrigger { get; set; } = UWBTRIGGER.noTrigger;
+        
+        public enum ACTIVEROBOT
+        {
+            Charlie = 0,
+            Lars = 1
+        }
+
+        public ACTIVEROBOT ActiveRobot { get; set; } = ACTIVEROBOT.Charlie;
 
         #endregion
         

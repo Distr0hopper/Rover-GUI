@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Model;
 using Unity.Robotics.ROSTCPConnector;
 using UnityEngine;
 
@@ -50,13 +51,13 @@ public class ConnectionController : MonoBehaviour
 
     public void ChangeRobotIP()
     {
-        switch (BasicController.ActiveRobot)
+        switch (Robot.Instance.ActiveRobot)
         {
-            case BasicController.ACTIVEROBOT.Charlie:
+            case Robot.ACTIVEROBOT.Charlie:
                 SetCharlieIP();
                 rosConnection.Connect();
                 break;
-            case BasicController.ACTIVEROBOT.Lars:
+            case Robot.ACTIVEROBOT.Lars:
                 SetLarsIP();
                 rosConnection.Connect();
                 break;

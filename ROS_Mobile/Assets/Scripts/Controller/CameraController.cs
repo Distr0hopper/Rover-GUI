@@ -59,7 +59,12 @@ public class CameraController : MonoBehaviour
         resetButton = root.Q<Button>("ResetButton");
         m_decreaseFOV.clicked += () => { ChangeFOV(5); ShowResetButton();}; // If you press FOV + you want to "zoom in"
         m_inreaseFOV.clicked += () => { ChangeFOV(-5); ShowResetButton();}; // If you press FOV - you want to "zoom out"
-        resetButton.clicked += () => { ResetCameraRotation(); ResetCameraFOV(); HideResetButton(); UIController.UpdateZoomDistanceLabel(0,true);};
+        resetButton.clicked += () =>
+        {
+            ResetCameraRotation();
+            ResetCameraFOV();
+            HideResetButton();
+        };
     }
 
     /*
@@ -194,7 +199,6 @@ public class CameraController : MonoBehaviour
             //mainCamOffset.y += numbAsFloat;
             if (mainCamera.orthographicSize <= 1) return;
             mainCamera.orthographicSize += numbAsFloat;
-            UIController.UpdateZoomDistanceLabel(number / 10f);
         }
         else
         {

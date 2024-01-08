@@ -24,18 +24,6 @@ public class BasicController : MonoBehaviour
     //PointMsg pMessage = new PointMsg();
     
     #endregion
-
-    #region Enums
-
-    public enum ACTIVEROBOT
-    {
-        Charlie = 0,
-        Lars = 1
-    }
-
-    public static ACTIVEROBOT ActiveRobot { get; set; } = ACTIVEROBOT.Charlie;
-
-    #endregion
     
     
     void Start()
