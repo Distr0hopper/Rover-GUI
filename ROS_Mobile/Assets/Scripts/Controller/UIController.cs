@@ -20,6 +20,7 @@ namespace myUIController
         private VisualElement UWBPanel;
         private VisualElement GeoSAMAPanel;
         private VisualElement connectionState;
+        private PopupWindow popupWindow;
         
         private Button driveButton;
         private Button stopButton;
@@ -128,9 +129,9 @@ namespace myUIController
             trigger4Button = root.Q<Button>("Trigger4");
             startScanButton = root.Q<Button>("StartScan");
             scanProgressBar = root.Q<ProgressBar>("ScanProgress");
+            popupWindow = root.Q<PopupWindow>("PopupWindow");
             
             
-            startScanButton.clicked += () => { StartScan(); };
             
             
             // Click on mainview, screenpoint is converted to worldpoint
@@ -147,6 +148,11 @@ namespace myUIController
             
             launchButton.clicked += () => { LaunchActiveUWB(); };
             launchButton.SetEnabled(false); //Cannot be clicked at beginning, need to select UWB Sensor first
+            
+            startScanButton.clicked += () => { StartScan(); };
+            
+            popupWindow.confirmed += () => { popupConfirmed(); };
+            popupWindow.canceled += () => { popupCanceled(); };
             
             stopButton.clicked += () =>
             {
@@ -617,18 +623,17 @@ namespace myUIController
                 // Set the active UWB in the robot model
                 SetActiveUWB();
                 
-                // Enable the launch button
-                launchButton.SetEnabled(true);
                 
                 if (activeTriggerButton.style.backgroundColor == disabledButtonColor)
                 {
-                    launchButton.text = "UWB already launched, try again?";
-                    launchButton.style.backgroundColor = new StyleColor(Color.yellow);
+                    //launchButton.text = "UWB already launched, try again?";
+                    //launchButton.style.backgroundColor = new StyleColor(Color.yellow);
+                    popupWindow.style.display = DisplayStyle.Flex;
                 }
                 else
                 {
-                    launchButton.text = "Launch";
-                    launchButton.style.backgroundColor = new StyleColor(Color.gray);
+                    // Enable the launch button
+                    launchButton.SetEnabled(true);
                 }
             }
         }
@@ -690,6 +695,18 @@ namespace myUIController
             scanProgressBar.value = scanProgressBar.highValue;
             // Set text to "Scan finished" from the progress bar
             scanProgressBar.title = "Scan finished";
+        }
+        
+        private void popupConfirmed()
+        {
+            launchButton.SetEnabled(true);
+            popupWindow.style.display = DisplayStyle.None;
+        }
+        
+        private void popupCanceled()
+        {
+            launchButton.SetEnabled(false);
+            popupWindow.style.display = DisplayStyle.None;
         }
        
         #region Helper Methods
