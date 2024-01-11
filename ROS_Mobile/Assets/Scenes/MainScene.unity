@@ -891,8 +891,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2733b5fcdf498c62d9c7170b9d8cf734, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  charlie_ip: 192.168.178.22
-  lars_ip: 192.168.0.51
+  charlie_ip: 192.168.0.227
+  lars_ip: 192.168.0.52
 --- !u!1 &738457002
 GameObject:
   m_ObjectHideFlags: 0

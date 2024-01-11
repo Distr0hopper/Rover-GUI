@@ -37,6 +37,8 @@ public class BasicController : MonoBehaviour
             robot.CurrentZ = msg.pose.pose.position.z;
             qMessage = msg.pose.pose.orientation;
         });
+        
+        //rosConnection.Subscribe<OdometryMsg>("pos");
     }
 
     private void Awake()
@@ -93,6 +95,7 @@ public class BasicController : MonoBehaviour
         Quaternion robotAngle = new Quaternion();
         robotAngle.eulerAngles = angles;
         robot.CurrentRot = robotAngle;
+        Robot.Instance.CurrentRot = robotAngle;
     }
     
     /*
@@ -102,5 +105,7 @@ public class BasicController : MonoBehaviour
     {
         //robot.currentPos = new Vector3((float) - pMessage.y, (float) pMessage.z, (float) pMessage.x);
         robot.CurrentPos = new Vector3((float)- robot.CurrentY,(float) robot.CurrentZ, (float) robot.CurrentX);
+        Robot.Instance.CurrentPos = robot.CurrentPos;
+        
     }
 }

@@ -34,31 +34,6 @@
         </ui:VisualElement>
         <ui:VisualElement name="RightPanel" style="flex-grow: 0; background-color: rgba(0, 255, 48, 0); width: 30%; height: 80%; position: relative; top: 10%; left: -170%; border-top-width: 0; border-bottom-width: 0; border-left-width: 0; border-left-color: rgba(0, 0, 0, 0); border-right-color: rgba(0, 0, 0, 0); border-top-color: rgba(0, 0, 0, 0); border-bottom-color: rgba(0, 0, 0, 0); flex-shrink: 0; align-items: center; justify-content: flex-start; align-self: auto; flex-direction: column; flex-wrap: nowrap; flex-basis: auto;">
             <ui:VisualElement name="secondView" style="flex-grow: 0; background-color: rgba(255, 249, 0, 0); height: 45%; width: 100%; position: relative; border-bottom-color: rgba(255, 255, 255, 0); border-top-width: 0; border-right-width: 0; border-bottom-width: 5px; border-left-width: 0; background-image: url(&apos;project://database/Assets/UI/BirdseyeCamera.renderTexture?fileID=8400000&amp;guid=ec718f131e6ba7945892e7ab69e5db16&amp;type=2#BirdseyeCamera&apos;); flex-shrink: 0; cursor: initial; border-left-color: rgba(255, 255, 255, 0); border-right-color: rgba(255, 255, 255, 0); border-top-color: rgba(255, 255, 255, 0);" />
-            <ui:VisualElement name="ManualDrivePanel" style="flex-grow: 0; width: 100%; justify-content: flex-start; align-items: center; visibility: visible; display: none; flex-shrink: 0; height: 35%; flex-direction: column-reverse; flex-wrap: nowrap; align-self: auto; background-image: none; background-color: rgba(0, 0, 0, 0.25);">
-                <ui:VisualElement name="DurationContainer" style="flex-direction: row-reverse; flex-grow: 0; flex-wrap: nowrap; height: 30%; width: 100%; flex-shrink: 0;">
-                    <ui:VisualElement name="Duration" style="flex-grow: 0; width: 50%; background-color: rgb(188, 188, 188); flex-shrink: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; top: 0; height: 100%; justify-content: space-between; align-items: flex-end; align-self: auto; position: relative; left: -25%; -unity-text-align: upper-left; flex-wrap: wrap-reverse; flex-direction: column;">
-                        <ui:Label tabindex="-1" text="Duration:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Duration" style="width: 100%; height: 50%; justify-content: flex-end; -unity-text-align: lower-center; font-size: 48px; white-space: nowrap; -unity-font: url(&apos;project://database/Assets/TextMesh%20Pro/Fonts/LiberationSans.ttf?fileID=12800000&amp;guid=e3265ab4bf004d28a9537516768c1c75&amp;type=3#LiberationSans&apos;); -unity-font-definition: initial;" />
-                        <ui:VisualElement name="TimeContainer" style="flex-grow: 1; justify-content: space-between; align-self: flex-end; width: 100%; flex-direction: row; align-items: auto; flex-wrap: nowrap;">
-                            <ui:Label tabindex="-1" text="5" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Time" style="width: 100px; height: 100%; justify-content: flex-end; -unity-text-align: lower-right; font-size: 50px; white-space: nowrap; -unity-font-style: bold; -unity-font: url(&apos;project://database/Assets/TextMesh%20Pro/Fonts/LiberationSans.ttf?fileID=12800000&amp;guid=e3265ab4bf004d28a9537516768c1c75&amp;type=3#LiberationSans&apos;); -unity-font-definition: initial;" />
-                            <ui:Label tabindex="-1" text="sec" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Seconds" style="width: 50%; height: 100%; justify-content: flex-end; -unity-text-align: lower-left; font-size: 50px; white-space: nowrap; -unity-font: url(&apos;project://database/Assets/TextMesh%20Pro/Fonts/LiberationSans.ttf?fileID=12800000&amp;guid=e3265ab4bf004d28a9537516768c1c75&amp;type=3#LiberationSans&apos;); -unity-font-definition: initial;" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:Button text="-" parse-escape-sequences="true" display-tooltip-when-elided="true" name="decButton" style="align-items: auto; justify-content: flex-start; align-self: auto; width: 20%; position: relative; top: 0; left: -29%; height: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; font-size: 100px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; background-color: rgb(0, 31, 255); color: rgb(255, 255, 255);" />
-                    <ui:Button text="+" parse-escape-sequences="true" display-tooltip-when-elided="true" name="incButton" class="incDecButton" />
-                </ui:VisualElement>
-                <ui:VisualElement name="fwdContainer" style="flex-grow: 0; width: 20%; height: 20%; background-color: rgb(0, 0, 0); flex-shrink: 0; top: -45%;">
-                    <ui:Button text="&#10;" parse-escape-sequences="true" display-tooltip-when-elided="true" name="fwdButton" style="width: 100%; height: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; background-image: url(&apos;project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=-4528830608231651361&amp;guid=eb80af753f475d84990c2635205091ed&amp;type=3#arrow-up@2x&apos;);" />
-                </ui:VisualElement>
-                <ui:VisualElement name="bwdContainer" style="flex-grow: 0; width: 20%; height: 20%; background-color: rgb(0, 0, 0); flex-shrink: 0; top: 15%;">
-                    <ui:Button text="&#10;" parse-escape-sequences="true" display-tooltip-when-elided="true" name="bwdButton" style="width: 100%; height: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; background-image: url(&apos;project://database/Assets/UnityDefaultRuntimeTheme.tss?fileID=-1304905567622442630&amp;guid=0b30865800c81dd4f9f353702021c45f&amp;type=3#arrow-down@2x&apos;);" />
-                </ui:VisualElement>
-                <ui:VisualElement name="rgtContainer" style="flex-grow: 0; width: 20%; height: 20%; background-color: rgb(0, 0, 0); flex-shrink: 0; top: 15%; left: 25%;">
-                    <ui:Button text="&#10;" parse-escape-sequences="true" display-tooltip-when-elided="true" name="rgtButton" style="width: 100%; height: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; background-image: url(&apos;project://database/Assets/UnityDefaultRuntimeTheme.tss?fileID=-1087164816274819069&amp;guid=0b30865800c81dd4f9f353702021c45f&amp;type=3#arrow-right@2x&apos;);" />
-                </ui:VisualElement>
-                <ui:VisualElement name="lftContainer" style="flex-grow: 0; width: 20%; height: 20%; background-color: rgb(0, 0, 0); flex-shrink: 0; top: 35%; left: -25%;">
-                    <ui:Button text="&#10;" parse-escape-sequences="true" display-tooltip-when-elided="true" name="lftButton" style="width: 100%; height: 100%; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; background-image: url(&apos;project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=-2236324273849735119&amp;guid=eb80af753f475d84990c2635205091ed&amp;type=3#arrow-left@2x&apos;);" />
-                </ui:VisualElement>
-            </ui:VisualElement>
             <ui:VisualElement name="DriveStopPanel" style="flex-grow: 0; width: 100%; justify-content: space-between; align-self: auto; align-items: center; height: 20%; flex-shrink: 0; background-color: rgba(0, 0, 0, 0.25); display: flex;">
                 <ui:Button text="SEND COMMAND" parse-escape-sequences="true" display-tooltip-when-elided="true" name="bStartDrive" class="ButtonDrive" style="background-color: rgb(188, 188, 188); color: rgb(255, 255, 255); margin-bottom: 15px; visibility: visible; border-left-color: rgba(149, 149, 149, 0); border-right-color: rgba(149, 149, 149, 0); border-top-color: rgba(149, 149, 149, 0); border-bottom-color: rgba(149, 149, 149, 0); font-size: 60px; min-width: 90%;" />
                 <ui:Button text="STOP" parse-escape-sequences="true" display-tooltip-when-elided="true" name="stopButton" style="min-width: 90%; flex-grow: 1; font-size: 60px; flex-shrink: 1; -unity-font: url(&apos;project://database/Assets/TextMesh%20Pro/Fonts/LiberationSans.ttf?fileID=12800000&amp;guid=e3265ab4bf004d28a9537516768c1c75&amp;type=3#LiberationSans&apos;); -unity-font-definition: initial; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; background-color: rgb(255, 0, 0); color: rgb(255, 255, 255); border-left-color: rgba(149, 149, 149, 0); border-right-color: rgba(149, 149, 149, 0); border-top-color: rgba(149, 149, 149, 0); border-bottom-color: rgba(149, 149, 149, 0);" />
@@ -101,6 +76,35 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="ProgressBarContainer" style="flex-grow: 0; min-width: 100%; flex-shrink: 0; margin-top: 57px;">
                     <ui:ProgressBar value="0" name="ScanProgress" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="ManualDrivePanel" style="flex-grow: 0; width: 100%; justify-content: flex-start; align-items: center; visibility: visible; display: none; flex-shrink: 0; height: 35%; flex-direction: column; flex-wrap: nowrap; align-self: auto; background-image: none; background-color: rgba(0, 0, 0, 0.25);">
+                <ui:VisualElement name="TopContainer" style="flex-grow: 0; flex-direction: row; width: 100%; height: 30%; min-height: auto; flex-shrink: 0; justify-content: space-around;">
+                    <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="forwardButton" text="FWD" style="background-image: none; width: 20%; font-size: 40px; display: flex;" />
+                    <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="turnCCWButton" text="CCW" style="background-image: none; width: 20%; font-size: 40px; display: none;" />
+                    <ui:Button text="Drive" parse-escape-sequences="true" display-tooltip-when-elided="true" name="driveMode" style="font-size: 40px; width: 141px; background-color: rgb(112, 112, 112);" />
+                    <ui:Button text="Turn" parse-escape-sequences="true" display-tooltip-when-elided="true" name="angleMode" style="font-size: 40px; width: 141px;" />
+                    <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="backwardButton" text="BWD" style="background-image: none; width: 20%; font-size: 40px; display: flex;" />
+                    <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="turnCWButton" text="CW" style="background-image: none; width: 20%; font-size: 40px; display: none;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="MiddleContainer" style="flex-grow: 0; flex-direction: row; height: 35%; flex-shrink: 0; width: 100%; justify-content: space-around; margin-top: 5px;">
+                    <ui:Button text="-" parse-escape-sequences="true" display-tooltip-when-elided="true" name="decrementButton" style="width: 20%; font-size: 40px;" />
+                    <ui:VisualElement name="DurationContainer" style="flex-grow: 0; flex-shrink: 0; width: 143px;">
+                        <ui:VisualElement name="DurationTop" style="flex-grow: 1;">
+                            <ui:Label tabindex="-1" text="Distance" parse-escape-sequences="true" display-tooltip-when-elided="true" name="inputTypeLabel" style="-unity-text-align: upper-center; font-size: 40px;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="DurationBot" style="flex-grow: 1; flex-direction: row; justify-content: center;">
+                            <ui:Label tabindex="-1" text="0" parse-escape-sequences="true" display-tooltip-when-elided="true" name="value" style="font-size: 40px;" />
+                            <ui:Label tabindex="-1" text="m" parse-escape-sequences="true" display-tooltip-when-elided="true" name="unit" style="font-size: 40px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Button text="+" parse-escape-sequences="true" display-tooltip-when-elided="true" name="incrementButton" style="width: 20%; font-size: 40px;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="BotContainer" style="flex-grow: 0; flex-direction: row; height: 85px; flex-shrink: 0; margin-top: 16px;">
+                    <ui:Button text="Stepsize&#10;0.1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="stepsizeMin" style="font-size: 20px;" />
+                    <ui:Button text="Stepsize&#10;0.5" parse-escape-sequences="true" display-tooltip-when-elided="true" name="stepsizeMid" style="font-size: 20px; background-color: rgb(112, 112, 112);" />
+                    <ui:Button text="Stepsize&#10;1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="stepsizeMax" style="font-size: 20px; background-color: rgb(188, 188, 188);" />
+                    <ui:Button text="Reset&#10;Stepsize" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ResetStepsize" style="font-size: 20px; display: none;" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

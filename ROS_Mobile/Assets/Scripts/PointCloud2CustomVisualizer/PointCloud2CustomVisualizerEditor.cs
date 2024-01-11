@@ -1,6 +1,7 @@
 using RosMessageTypes.Sensor;
-using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
 [CustomEditor(typeof(PointCloud2CustomVisualizer))]
 public class PointCloud2CustomVisualizerEditor : SettingsBasedVisualizerEditor<PointCloud2Msg, PointCloud2CustomVisualizerSettings>
 {
@@ -60,3 +61,4 @@ public class PointCloud2CustomVisualizerEditor : SettingsBasedVisualizerEditor<P
         }
     }
 }
+#endif

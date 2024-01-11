@@ -116,6 +116,7 @@ public class CameraController : MonoBehaviour
     private void UpdateCameraPosition()
     {
         mainCamera.transform.position = Robot.Instance.CurrentPos + mainCamOffset;
+        Debug.Log("Robot cur pos: " + Robot.Instance.CurrentPos);
         secondCamera.transform.position = Robot.Instance.CurrentPos + secondCamOffset;
     }
 
@@ -168,7 +169,7 @@ public class CameraController : MonoBehaviour
      */
     private float GetJoystickInput(out Quaternion rotationQuat)
     {
-        float rotationX = -m_JoystickDelta.y * rotationSpeed;
+        float rotationX = m_JoystickDelta.y * rotationSpeed;
         float rotationY = m_JoystickDelta.x * rotationSpeed;
         float rotationZ = 0;
 

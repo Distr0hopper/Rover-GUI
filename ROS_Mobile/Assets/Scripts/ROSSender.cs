@@ -7,12 +7,15 @@ using Unity.Robotics.ROSTCPConnector;
 using RosMessageTypes.Geometry;
 using UnityEngine.Serialization;
 using RosMessageTypes.ROSMobile;
+using RosMessageTypes.Std;
+
 public class ROSSender : MonoBehaviour
 {
     [FormerlySerializedAs("move_TopicName")] [FormerlySerializedAs("m_TopicName")] [SerializeField]
     private string point_TopicName = "/move_base_simple/goal";
 
-    private string stear_TopicName = "/man_control";
+    private string lars_manualSteerTopicName = "/man_control";
+    private string charlie_manualSteerTopicName = "/manuellController";
     
     // ROS Connector
     public ROSConnection rosConnection { private get; set; }
@@ -20,7 +23,8 @@ public class ROSSender : MonoBehaviour
     {
         // Register publishers for sending point and move commands
         rosConnection.RegisterPublisher<PoseStampedMsg>(point_TopicName);
-        rosConnection.RegisterPublisher<Move_commandMsg>(stear_TopicName);
+        rosConnection.RegisterPublisher<Move_commandMsg>(lars_manualSteerTopicName);
+        rosConnection.RegisterPublisher<StringMsg>(charlie_manualSteerTopicName);
 
         // Wait for GUI to be clicked
         UIController.OnStartDriving += SendPointToDrive;
@@ -49,6 +53,7 @@ public class ROSSender : MonoBehaviour
         Debug.Log(messageToRos);
         // Publish the message to the ROS network
         rosConnection.Publish(point_TopicName, messageToRos);
+        //rosConnection.SendServiceMessage("/WD/stop_led", new EmptyMsg());
     }
     
     /*
@@ -56,19 +61,76 @@ public class ROSSender : MonoBehaviour
      */
     private void SendManualStearingCommand()
     {
-        Debug.Log("Direction: " + Robot.Instance.Direction + " for " + Robot.Instance.Duration + " seconds");
+        if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
+        {
+            SendSteerInfoToLars();
+        }
+        else
+        {
+            SendSteerInfoToCharlie();
+        }
+      
+    }
+
+    private void SendSteerInfoToCharlie()
+    {
+        StringMsg moveCommandMsg = new StringMsg();
+        switch (Robot.Instance.Direction)
+        {
+            case Robot.DIRECTIONS.stop:
+                moveCommandMsg.data = "stop";
+                break;
+            case Robot.DIRECTIONS.forward:
+                moveCommandMsg.data = "fwd " + Robot.Instance.Distance;
+                Debug.Log("Direction: " + Robot.Instance.Direction + " for " + Robot.Instance.Distance + " meters");
+                break;
+            case Robot.DIRECTIONS.backward:
+                moveCommandMsg.data = "rwd " + Robot.Instance.Distance;
+                Debug.Log("Direction: " + Robot.Instance.Direction + " for " + Robot.Instance.Distance + " meters");
+                break;
+            case Robot.DIRECTIONS.left:
+                moveCommandMsg.data = "ccw " + Robot.Instance.Angle;
+                Debug.Log("Direction: " + Robot.Instance.Direction + " for " + Robot.Instance.Angle + " degree");
+                break;
+            case Robot.DIRECTIONS.right:
+                moveCommandMsg.data = "cw " + Robot.Instance.Angle;
+                Debug.Log("Direction: " + Robot.Instance.Direction + " for " + Robot.Instance.Angle + " degree");
+                break;
+        }
+        
+        rosConnection.Publish(charlie_manualSteerTopicName, moveCommandMsg);
+        
+        //rosConnection.Publish("/manuellController", string (msg.data);
+        //rosConnection.Publish("/manuellController", new StringMsg("ccw 5"));
+        // sending at start: rosConnection.Publish("/manuellController", new StringMsg("scale 0.5"));
+    }
+    
+
+    private void SendSteerInfoToLars()
+    {
         Move_commandMsg moveCommandMsg = new Move_commandMsg();
-        moveCommandMsg.setSpeed = false;
+        // If Stop button is clicked, send stop command
         if (Robot.Instance.Direction == 0)
         {
             moveCommandMsg.stop = true;
         } else moveCommandMsg.stop = false;
+      
+        moveCommandMsg.setSpeed = false;
         
         moveCommandMsg.direction = (sbyte)Robot.Instance.Direction;
-        moveCommandMsg.duration = new DurationMsg(Robot.Instance.Duration, 0);
-        rosConnection.Publish(stear_TopicName, moveCommandMsg);
+        
+        if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive)
+        {
+            moveCommandMsg.value = Robot.Instance.Distance;
+            Debug.Log("Direction: " + Robot.Instance.Direction + " for " + Robot.Instance.Distance + " meters");
+        
+        } else if (Robot.Instance.ManualMode == Robot.MANUALMODE.rotate)
+        {
+            moveCommandMsg.value = Robot.Instance.Angle;
+            Debug.Log("Direction: " + Robot.Instance.Direction + " for " + Robot.Instance.Angle + " degree");
+        }
+        rosConnection.Publish(lars_manualSteerTopicName, moveCommandMsg);
         Robot.Instance.OrientationX = Robot.Instance.CurrentX;
         Robot.Instance.OrientationY = Robot.Instance.CurrentY;
     }
-    
 }

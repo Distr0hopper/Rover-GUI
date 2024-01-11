@@ -19,6 +19,7 @@ namespace RosMessageTypes.ROSMobile
         public DurationMsg duration;
         public sbyte speed;
         public bool setSpeed;
+        public double value;
 
         public Move_commandMsg()
         {
@@ -27,15 +28,17 @@ namespace RosMessageTypes.ROSMobile
             this.duration = new DurationMsg();
             this.speed = 0;
             this.setSpeed = false;
+            this.value = 0.0;
         }
 
-        public Move_commandMsg(bool stop, sbyte direction, DurationMsg duration, sbyte speed, bool setSpeed)
+        public Move_commandMsg(bool stop, sbyte direction, DurationMsg duration, sbyte speed, bool setSpeed, double value)
         {
             this.stop = stop;
             this.direction = direction;
             this.duration = duration;
             this.speed = speed;
             this.setSpeed = setSpeed;
+            this.value = value;
         }
 
         public static Move_commandMsg Deserialize(MessageDeserializer deserializer) => new Move_commandMsg(deserializer);
@@ -47,6 +50,7 @@ namespace RosMessageTypes.ROSMobile
             this.duration = DurationMsg.Deserialize(deserializer);
             deserializer.Read(out this.speed);
             deserializer.Read(out this.setSpeed);
+            deserializer.Read(out this.value);
         }
 
         public override void SerializeTo(MessageSerializer serializer)
@@ -56,6 +60,7 @@ namespace RosMessageTypes.ROSMobile
             serializer.Write(this.duration);
             serializer.Write(this.speed);
             serializer.Write(this.setSpeed);
+            serializer.Write(this.value);
         }
 
         public override string ToString()
@@ -65,7 +70,8 @@ namespace RosMessageTypes.ROSMobile
             "\ndirection: " + direction.ToString() +
             "\nduration: " + duration.ToString() +
             "\nspeed: " + speed.ToString() +
-            "\nsetSpeed: " + setSpeed.ToString();
+            "\nsetSpeed: " + setSpeed.ToString() +
+            "\nvalue: " + value.ToString();
         }
 
 #if UNITY_EDITOR

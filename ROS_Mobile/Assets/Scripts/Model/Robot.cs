@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Model
@@ -41,6 +42,7 @@ namespace Model
             left = 5,
             right = 6
         }
+
         public DIRECTIONS Direction { get; set; }
 
         public enum UWBTRIGGER
@@ -62,11 +64,22 @@ namespace Model
 
         public ACTIVEROBOT ActiveRobot { get; set; } = ACTIVEROBOT.Charlie;
 
+        public enum MANUALMODE
+        {
+            rotate = 0,
+            drive = 1
+        }
+        
+        public MANUALMODE ManualMode { get; set; } = MANUALMODE.drive;
+
         #endregion
         
         // 3D Model of the robot in the scene
         public GameObject Robot3DModel { get; set; }
-        public int Duration { get; set; } = 5;
+        //public int Duration { get; set; } = 5;
+        
+        public float Distance { get; set; } = 0f;
+        public float Angle { get; set; } = 0f;
 
         #region World Coordinates
         public double OrientationX { get; set; }
@@ -93,14 +106,29 @@ namespace Model
         
 
 
-        public void IncrementSpeed()
+        public void IncrementDistance(float step = 0.5f)
         {
-            if (Duration < 8) Duration++;
+            if (Distance < 8) Distance+=step;
+            Distance = Mathf.Round(Distance * 10f) / 10f;
         }
 
-        public void DecrementSpeed()
+        public void DecrementDistance(float step = 0.5f)
         {
-            if (Duration > 1) Duration--;
+            Distance-=step;
+            if (Distance <= 0) Distance = 0;
+            Distance = Mathf.Round(Distance * 10f) / 10f;
+        }
+        
+        public void IncrementAngle(float step = 5f)
+        {
+            Angle += step;
+            if (Angle > 360) Angle = 360;
+        }
+        
+        public void DecrementAngle(float step = 5f)
+        {
+            Angle -= step;
+            if (Angle <= 0) Angle = 0;
         }
 
         public void SetGoalInWorldPos(Vector3 position)
