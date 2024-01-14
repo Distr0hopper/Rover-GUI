@@ -208,7 +208,8 @@ namespace myUIController
                 ManualSteeringButtonClicked();
                 FlashStopButton();
                 ChangeMarkerColor(false);
-                ChangeStartDrivingButton(true);
+                ChangeStartDrivingButton(false);
+                SetActiveButtonCSS(null, new Button[] {forwardButton, backwardButton, turnCWButton, turnCCWButton});
             };
 
             driveMode.clicked += () =>
@@ -303,6 +304,8 @@ namespace myUIController
 
             connectionController.OnConnectionStatusChanged += HandleConnectionStatusChanged;
             StartCoroutine(InitializeAfterLayout());
+            //At the beginning, the decrement button should be inactive because the distance is 0 and the angle is 0 
+            UpdateButtonStates();
         }
 
         /*
@@ -620,6 +623,7 @@ namespace myUIController
          */
         private void IncrementAngleDuration()
         {
+            
             if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive)
             {
                 Robot.Instance.IncrementDistance(distanceStepSize);
@@ -631,7 +635,46 @@ namespace myUIController
                 UpdateDurationLabelInView(true);
             }
 
+            UpdateButtonStates();
             CheckShowResetButton();
+        }
+        
+        /*
+         * Decrement the duration of the robot model and update the duration label in the UI
+         */
+        private void DecrementAngleDuration()
+        {
+            if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive)
+            {
+                if (Robot.Instance.Distance <= 0) decrementButton.SetEnabled(false);
+                else decrementButton.SetEnabled(true);
+                Robot.Instance.DecrementDistance(distanceStepSize);
+                UpdateDurationLabelInView(false);
+            }
+            else
+            {
+                if (Robot.Instance.Angle <= 0) decrementButton.SetEnabled(false);
+                else decrementButton.SetEnabled(true);
+                Robot.Instance.DecrementAngle(turnStepSize);
+                UpdateDurationLabelInView(true);
+            }
+
+            UpdateButtonStates();
+            CheckShowResetButton();
+        }
+        
+        private void UpdateButtonStates()
+        {
+            if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive)
+            {
+                incrementButton.SetEnabled(Robot.Instance.Distance < 8);
+                decrementButton.SetEnabled(Robot.Instance.Distance > 0);
+            }
+            else
+            {
+                incrementButton.SetEnabled(Robot.Instance.Angle < 360);
+                decrementButton.SetEnabled(Robot.Instance.Angle > 0);
+            }
         }
 
         private void CheckShowResetButton()
@@ -655,26 +698,9 @@ namespace myUIController
                 Robot.Instance.Angle = 0;
                 UpdateDurationLabelInView(true);
             }
+            UpdateButtonStates();
         }
-
-        /*
-         * Decrement the duration of the robot model and update the duration label in the UI
-         */
-        private void DecrementAngleDuration()
-        {
-            if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive)
-            {
-                Robot.Instance.DecrementDistance(distanceStepSize);
-                UpdateDurationLabelInView(false);
-            }
-            else
-            {
-                Robot.Instance.DecrementAngle(turnStepSize);
-                UpdateDurationLabelInView(true);
-            }
-
-            CheckShowResetButton();
-        }
+        
 
         /*
          * Update the duration label in the UI with the duration of the robot model

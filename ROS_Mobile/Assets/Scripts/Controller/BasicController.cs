@@ -28,6 +28,7 @@ public class BasicController : MonoBehaviour
     
     void Start()
     {
+        robot = Robot.Instance;
         // Subscribe to the current pose of the robot
         rosConnection.Subscribe<OdometryMsg>("cur_pose", msg =>
         {

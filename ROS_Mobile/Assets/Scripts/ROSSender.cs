@@ -79,6 +79,7 @@ public class ROSSender : MonoBehaviour
         {
             case Robot.DIRECTIONS.stop:
                 moveCommandMsg.data = "stop";
+                Debug.Log("Command send: " + Robot.Instance.Direction);
                 break;
             case Robot.DIRECTIONS.forward:
                 moveCommandMsg.data = "fwd " + Robot.Instance.Distance;

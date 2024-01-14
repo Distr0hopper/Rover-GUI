@@ -198,7 +198,7 @@ public class CameraController : MonoBehaviour
             float numbAsFloat = number / 10f; 
             // Change the height of the camera
             //mainCamOffset.y += numbAsFloat;
-            if (mainCamera.orthographicSize <= 1) return;
+            if (mainCamera.orthographicSize + numbAsFloat < 1) return;
             mainCamera.orthographicSize += numbAsFloat;
         }
         else

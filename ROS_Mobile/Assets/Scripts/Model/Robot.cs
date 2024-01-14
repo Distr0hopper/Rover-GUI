@@ -108,7 +108,8 @@ namespace Model
 
         public void IncrementDistance(float step = 0.5f)
         {
-            if (Distance < 8) Distance+=step;
+            Distance+=step;
+            if (Distance >= 8) Distance = 8;
             Distance = Mathf.Round(Distance * 10f) / 10f;
         }
 
