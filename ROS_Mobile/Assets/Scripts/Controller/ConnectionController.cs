@@ -18,6 +18,8 @@ public class ConnectionController : MonoBehaviour
     public ROSConnection rosConnection { private get; set; }
     
     private bool _hasConnection;
+    private float connectionCheckDelay = 1.0f; // Delay in seconds
+    private float lastConnectionCheckTime;
     
     // Define method for connection status changed event
     public delegate void ConnectionStatusChangedHandler(bool isConnected);
@@ -50,7 +52,19 @@ public class ConnectionController : MonoBehaviour
 
     private void Update()
     {
-        HasConnection = !rosConnection.HasConnectionError;
+        // Check connection status at intervals defined by connectionCheckDelay
+        if (Time.time - lastConnectionCheckTime > connectionCheckDelay)
+        {
+            lastConnectionCheckTime = Time.time;
+            CheckConnection();
+        }
+    }
+    
+    private void CheckConnection()
+    {
+        // Logic to check the actual connection status
+        bool currentConnectionStatus = !rosConnection.HasConnectionError;
+        HasConnection = currentConnectionStatus;
     }
 
     public void ChangeRobotIP()
