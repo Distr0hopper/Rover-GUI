@@ -77,6 +77,7 @@ namespace myUIController
         private EnumField changeRobotDropdown;
 
         private ProgressBar scanProgressBar;
+        private ProgressBar scanProgressRiegl;
 
         #endregion
 
@@ -159,8 +160,9 @@ namespace myUIController
             scanModeButton = root.Q<Button>("ScanModeButton");
             changeRobotDropdown = root.Q<EnumField>("RobotChoice");
             
-            //Riegl Scan Button
+            //Riegl Panel
             startRieglScanButton = root.Q<Button>("StartRieglScanButton");
+            scanProgressRiegl = root.Q<ProgressBar>("ScanProgressRiegl");
             
 
             // Panels for the different modes (on the right)
@@ -333,6 +335,7 @@ namespace myUIController
             {
                 RieglScanStarting?.Invoke();
             }
+            StartScan();
         }
 
         /*
@@ -345,21 +348,20 @@ namespace myUIController
                 missionModeUWBButton.style.display = DisplayStyle.None;
                 missionModeGeoSAMAButton.style.display = DisplayStyle.None;
                 scanModeButton.style.display = DisplayStyle.Flex;
+                marker.transform.position = new Vector3(Lars.Instance.CurrentPos.x, 0f, Lars.Instance.CurrentPos.z);
             }
             else
             {
                 missionModeUWBButton.style.display = DisplayStyle.Flex;
                 missionModeGeoSAMAButton.style.display = DisplayStyle.Flex;
                 scanModeButton.style.display = DisplayStyle.None;
+                marker.transform.position = new Vector3(Charlie.Instance.CurrentPos.x, 0f, Charlie.Instance.CurrentPos.z);
             }
 
             //Reset the Operation Mode and show the auto drive panel
             Robot.Instance._operationMode = Robot.OperationMode.autoDrive;
             SetOperationMode(Robot.Instance._operationMode);
-
-            //Reset the Marker to the position of the robot
-            marker.transform.position = new Vector3(Robot.Instance.CurrentPos.x, 0.75f, Robot.Instance.CurrentPos.z);
-
+            
             //Reset the Distance Label
             distanceLabel.text = "0 m";
 
@@ -517,7 +519,7 @@ namespace myUIController
             if (groundPlane.Raycast(ray, out float enter))
             {
                 worldPosition = ray.GetPoint(enter);
-                marker.transform.position = new Vector3(worldPosition.x, 0.75f, worldPosition.z); //Add 0.75f to make above the robot model
+                marker.transform.position = new Vector3(worldPosition.x, 0f, worldPosition.z); //Add 0.75f to make above the robot model
 
                 // Set the world coordinates in the robot model
                 Robot.Instance.SetGoalInWorldPos(worldPosition);
@@ -859,7 +861,7 @@ namespace myUIController
                 ResetButtonState(clickedButton);
                 activeTriggerButton = null;
                 launchButton.SetEnabled(false);
-                Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.noTrigger;
+                Charlie.Instance.UwbTrigger = Charlie.UWBTRIGGER.noTrigger;
             }
             else
             {
@@ -902,19 +904,19 @@ namespace myUIController
         {
             if (activeTriggerButton.name == "Trigger1")
             {
-                Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.trigger1;
+                Charlie.Instance.UwbTrigger = Charlie.UWBTRIGGER.trigger1;
             }
             else if (activeTriggerButton.name == "Trigger2")
             {
-                Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.trigger2;
+                Charlie.Instance.UwbTrigger = Charlie.UWBTRIGGER.trigger2;
             }
             else if (activeTriggerButton.name == "Trigger3")
             {
-                Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.trigger3;
+                Charlie.Instance.UwbTrigger = Charlie.UWBTRIGGER.trigger3;
             }
             else if (activeTriggerButton.name == "Trigger4")
             {
-                Robot.Instance.UwbTrigger = Robot.UWBTRIGGER.trigger4;
+                Charlie.Instance.UwbTrigger = Charlie.UWBTRIGGER.trigger4;
             }
         }
 
@@ -928,7 +930,7 @@ namespace myUIController
             // Set the Background color of the launched Button to grey and disable it
             activeTriggerButton.style.backgroundColor = new StyleColor(disabledButtonColor);
             //activeTriggerButton.SetEnabled(false);
-            Debug.Log("Launching: " + Robot.Instance.UwbTrigger);
+            Debug.Log("Launching: " + Charlie.Instance.UwbTrigger);
             launchButton.SetEnabled(false);
         }
 
@@ -1045,20 +1047,41 @@ namespace myUIController
          */
         private IEnumerator FillProgressBar()
         {
-            scanProgressBar.value = 0;
-            scanProgressBar.title = "Scanning...";
-            float duration = 5f;
-            float timePassed = 0f;
-            while (timePassed < duration)
+            if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
             {
-                timePassed += Time.deltaTime;
-                scanProgressBar.value = (timePassed / duration) * scanProgressBar.highValue;
-                yield return null;
-            }
+                scanProgressBar.value = 0;
+                scanProgressBar.title = "Scanning...";
+                float duration = 5;
+                float timePassed = 0f;
+                while (timePassed < duration)
+                {
+                    timePassed += Time.deltaTime;
+                    scanProgressBar.value = (timePassed / duration) * scanProgressBar.highValue;
+                    yield return null;
+                }
 
-            scanProgressBar.value = scanProgressBar.highValue;
-            // Set text to "Scan finished" from the progress bar
-            scanProgressBar.title = "Scan finished";
+                scanProgressBar.value = scanProgressBar.highValue;
+                // Set text to "Scan finished" from the progress bar
+                scanProgressBar.title = "Scan finished";
+            }
+            else
+            {
+                scanProgressRiegl.value = 0;
+                scanProgressRiegl.title = "Scanning...";
+                float duration = 360;
+                float timePassed = 0f;
+                while (timePassed < duration)
+                {
+                    timePassed += Time.deltaTime;
+                    scanProgressRiegl.value = (timePassed / duration) * scanProgressRiegl.highValue;
+                    yield return null;
+                }
+
+                scanProgressRiegl.value = scanProgressRiegl.highValue;
+                // Set text to "Scan finished" from the progress bar
+                scanProgressRiegl.title = "Scan finished";
+            }
+          
         }
 
         /*

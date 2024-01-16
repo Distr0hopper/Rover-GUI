@@ -891,9 +891,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2733b5fcdf498c62d9c7170b9d8cf734, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  charlie_ip: 192.168.0.227
+  charlie_ip: 192.168.178.22
   lars_ip: 192.168.0.52
   pointClouds: {fileID: 11400000, guid: 43d86d6349e5b5bada52154f73499eeb, type: 2}
+  laserScan: {fileID: 11400000, guid: f53165fb8c4d340e3ad973ec7784242e, type: 2}
 --- !u!1 &738457002
 GameObject:
   m_ObjectHideFlags: 0
@@ -2699,6 +2700,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_ID
       value: 5180805759586010064-1588145924
+      objectReference: {fileID: 0}
+    - target: {fileID: 5222529248919960493, guid: 7e8ecfd17cd58c247916864b74797f3f,
+        type: 3}
+      propertyPath: m_Topic
+      value: /LMS
       objectReference: {fileID: 0}
     - target: {fileID: 5315367504069929536, guid: 7e8ecfd17cd58c247916864b74797f3f,
         type: 3}

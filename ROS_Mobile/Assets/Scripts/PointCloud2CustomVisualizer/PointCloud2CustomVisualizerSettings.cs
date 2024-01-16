@@ -65,7 +65,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         set => m_HueChannel = value;
     }
 
-    string m_HueChannel = "y";
+    string m_HueChannel = "intensity";
 
     public string RgbChannel
     {
@@ -180,9 +180,11 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
 
     // How many points to skip when drawing the point cloud (1 = show all, 40 = 40 times less points)
     [FormerlySerializedAs("denseFactor")] public int skipPoints = 1;
+    Drawing3d drawing;
 
     public override void Draw(Drawing3d drawing, PointCloud2Msg message, MessageMetadata meta)
     {
+        this.drawing = drawing;
         float currentTime = Time.time;
 
         TFFrame currentTFFrame = TFSystem.instance.GetTransform(message.header);
@@ -286,6 +288,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
             Vector3 unityPoint = rosPoint.toUnity;
             // Transform Point within current TF frame
             unityPoint = currentTFFrame.TransformPoint(unityPoint);
+            // Transform Point with the Robot Position so that it changes position with the robot
             unityPoint.x += Charlie.Instance.CurrentPos.x;
             unityPoint.z += Charlie.Instance.CurrentPos.z;
             
@@ -307,7 +310,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         }
 
         // Go through List of MyPointCloudDrawing objects and destroy the ones that are older than decayTime
-        for (int i = 0; i < pointCloudList.Count - 1; i++)
+        for (int i = 0; i < pointCloudList.Count; i++)
         {
             var current = pointCloudList[i];
             if (currentTime - current.timestamp > decayTime)
@@ -325,14 +328,25 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
 
     public void DestroyAllPointclouds()
     {
-        foreach (var pointCloudDrawing in pointCloudList)
+        foreach (var pointCloud in pointCloudList)
         {
-            pointCloudDrawing.pointCloudDrawing.Clear();
-            Destroy(pointCloudDrawing.pointCloudDrawing.gameObject);
+            //Destroy(pointCloud.pointCloudDrawing.gameObject.GetComponent<MeshRenderer>());
+            Destroy(pointCloud.pointCloudDrawing.gameObject);
         }
         pointCloudList.Clear();
     }
 
+    public void DestroyDrawing()
+    {
+        Destroy(drawing.gameObject);
+        Destroy(drawing);
+        pointCloudList.Clear();
+    }
+
+    public void ClearPointcloudList()
+    {
+        pointCloudList.Clear();
+    }
     private void DestroyCurrentPointCloud(MyPointCloudDrawing current)
     {
         //Destroy game Object

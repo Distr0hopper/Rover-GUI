@@ -91,12 +91,12 @@ public class BasicController : MonoBehaviour
         //robot3DModel.transform.localPosition = robot.currentPos;
         if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
         {
-            robot3DModel.transform.position = new Vector3(Lars.Instance.CurrentPos.x, Lars.Instance.CurrentPos.y, Lars.Instance.CurrentPos.z); //Make that it is on the ground and not in the air
+            robot3DModel.transform.position = new Vector3(Lars.Instance.CurrentPos.x, -0.54f, Lars.Instance.CurrentPos.z); //Make that it is on the ground and not in the air
             robot3DModel.transform.rotation = Lars.Instance.CurrentRot;
         }
         else
         { 
-            robot3DModel.transform.position = new Vector3(Charlie.Instance.CurrentPos.x, Charlie.Instance.CurrentPos.y, Charlie.Instance.CurrentPos.z); //Make that it is on the ground and not in the air
+            robot3DModel.transform.position = new Vector3(Charlie.Instance.CurrentPos.x, -0.54f, Charlie.Instance.CurrentPos.z); //Make that it is on the ground and not in the air
             Vector3 angles = new Vector3(0, 90, 0);
             Quaternion temp = new Quaternion();
             temp.eulerAngles = angles;

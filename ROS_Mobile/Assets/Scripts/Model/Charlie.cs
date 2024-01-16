@@ -19,6 +19,17 @@ public class Charlie
         } 
     }
     
+    public enum UWBTRIGGER
+    {
+        trigger1 = 1,
+        trigger2 = 2,
+        trigger3 = 3,
+        trigger4 = 4,
+        noTrigger = 0
+    }
+
+    public UWBTRIGGER UwbTrigger { get; set; } = UWBTRIGGER.noTrigger;
+    
     public double CurrentX;
     public double CurrentY;
     public double CurrentZ;

@@ -45,17 +45,6 @@ namespace Model
         }
 
         public DIRECTIONS Direction { get; set; }
-
-        public enum UWBTRIGGER
-        {
-            trigger1 = 1,
-            trigger2 = 2,
-            trigger3 = 3,
-            trigger4 = 4,
-            noTrigger = 0
-        }
-
-        public UWBTRIGGER UwbTrigger { get; set; } = UWBTRIGGER.noTrigger;
         
         public enum ACTIVEROBOT
         {
