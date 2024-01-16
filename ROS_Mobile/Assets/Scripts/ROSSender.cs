@@ -13,7 +13,7 @@ public class ROSSender : MonoBehaviour
 {
     [FormerlySerializedAs("move_TopicName")] [FormerlySerializedAs("m_TopicName")] [SerializeField]
     private string point_TopicName = "/move_base_simple/goal";
-
+    
     private string lars_manualSteerTopicName = "/man_control";
     private string charlie_manualSteerTopicName = "/manuellController";
     
@@ -29,6 +29,11 @@ public class ROSSender : MonoBehaviour
         // Wait for GUI to be clicked
         UIController.OnStartDriving += SendPointToDrive;
         UIController.OnManualSteering += SendManualStearingCommand;
+        UIController.RieglScanStarting += SendRieglScanStartingCommand;
+        
+        // Register ROS Service
+        rosConnection.RegisterRosService<EmptyRequest, EmptyResponse>("/setSingle");
+        rosConnection.RegisterRosService<EmptyRequest, EmptyResponse>("/startMeasuring");
     }
     
     /*
@@ -47,8 +52,17 @@ public class ROSSender : MonoBehaviour
         
         // Convert the Vector3 to a ROS message (geometry_message::PoseStamped), end orientation is the orientation while driving to the goal
         PoseStampedMsg messageToRos = ROSUtils.pointToPoseMsg(vector3Message);
-        Robot.Instance.OrientationX = messageToRos.pose.position.x;
-        Robot.Instance.OrientationY = messageToRos.pose.position.y;
+        if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
+        {
+            Lars.Instance.OrientationX = messageToRos.pose.position.x;
+            Lars.Instance.OrientationY = messageToRos.pose.position.y;
+        }
+        else
+        {
+            Charlie.Instance.OrientationX = messageToRos.pose.position.x;
+            Charlie.Instance.OrientationY = messageToRos.pose.position.y;
+        }
+        
 
         Debug.Log(messageToRos);
         // Publish the message to the ROS network
@@ -69,7 +83,13 @@ public class ROSSender : MonoBehaviour
         {
             SendSteerInfoToCharlie();
         }
-      
+    }
+
+    private async void SendRieglScanStartingCommand()
+    {
+        // Make a service call to start the Riegl scan
+        await rosConnection.SendServiceMessage<EmptyResponse>("/setSingle",new EmptyRequest());
+        await rosConnection.SendServiceMessage<EmptyResponse>("/startMeasuring",new EmptyRequest());
     }
 
     private void SendSteerInfoToCharlie()
@@ -101,6 +121,9 @@ public class ROSSender : MonoBehaviour
         
         rosConnection.Publish(charlie_manualSteerTopicName, moveCommandMsg);
         
+        Charlie.Instance.OrientationX = Charlie.Instance.CurrentX;
+        Charlie.Instance.OrientationY = Charlie.Instance.CurrentY;
+        
         //rosConnection.Publish("/manuellController", string (msg.data);
         //rosConnection.Publish("/manuellController", new StringMsg("ccw 5"));
         // sending at start: rosConnection.Publish("/manuellController", new StringMsg("scale 0.5"));
@@ -131,7 +154,7 @@ public class ROSSender : MonoBehaviour
             Debug.Log("Direction: " + Robot.Instance.Direction + " for " + Robot.Instance.Angle + " degree");
         }
         rosConnection.Publish(lars_manualSteerTopicName, moveCommandMsg);
-        Robot.Instance.OrientationX = Robot.Instance.CurrentX;
-        Robot.Instance.OrientationY = Robot.Instance.CurrentY;
+        Lars.Instance.OrientationX = Lars.Instance.CurrentX;
+        Lars.Instance.OrientationY = Lars.Instance.CurrentY;
     }
 }

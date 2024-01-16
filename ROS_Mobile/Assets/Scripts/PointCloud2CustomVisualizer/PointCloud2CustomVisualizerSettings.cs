@@ -268,6 +268,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         
         // Iterate through all points in the point cloud, may skip some points depending on skipPoints
         skipPoints = Math.Max(1, skipPoints);
+        double theta = Charlie.Instance.CurrentRot.eulerAngles.y;
         for (int i = 0; i < maxI; i += skipPoints)
         {
             i = Math.Min(i, maxI - 1);
@@ -275,12 +276,19 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
             var x = BitConverter.ToSingle(message.data, iPointStep + xChannelOffset);
             var y = BitConverter.ToSingle(message.data, iPointStep + yChannelOffset);
             var z = BitConverter.ToSingle(message.data, iPointStep + zChannelOffset);
+            //x = (float) Math.Cos(theta) * x - (float) Math.Sin(theta) * z;
+            //z = (float) Math.Sin(theta) * x + (float) Math.Cos(theta) * z;
+            //x += (float) Charlie.Instance.CurrentX;
+            //z += (float)Charlie.Instance.CurrentZ;
             Vector3<FLU> rosPoint = new Vector3<FLU>(x, y, z);
 
 
             Vector3 unityPoint = rosPoint.toUnity;
             // Transform Point within current TF frame
             unityPoint = currentTFFrame.TransformPoint(unityPoint);
+            unityPoint.x += Charlie.Instance.CurrentPos.x;
+            unityPoint.z += Charlie.Instance.CurrentPos.z;
+            
             Color color = colorGenerator(iPointStep);
 
             float radius;
@@ -315,6 +323,16 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         }
     }
 
+    public void DestroyAllPointclouds()
+    {
+        foreach (var pointCloudDrawing in pointCloudList)
+        {
+            pointCloudDrawing.pointCloudDrawing.Clear();
+            Destroy(pointCloudDrawing.pointCloudDrawing.gameObject);
+        }
+        pointCloudList.Clear();
+    }
+
     private void DestroyCurrentPointCloud(MyPointCloudDrawing current)
     {
         //Destroy game Object
@@ -328,6 +346,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
         //Destroy PointCloudDrawing object
         Destroy(current.pointCloudDrawing);
     }
+    
 
 
     /*

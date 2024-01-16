@@ -21,6 +21,7 @@ public class BasicController : MonoBehaviour
     private Robot robot;
     private ROSConnection rosConnection {get; set;}
     private QuaternionMsg qMessage = new QuaternionMsg();
+    private QuaternionMsg qMessageCharlie = new QuaternionMsg();
     //PointMsg pMessage = new PointMsg();
     
     #endregion
@@ -33,12 +34,21 @@ public class BasicController : MonoBehaviour
         rosConnection.Subscribe<OdometryMsg>("cur_pose", msg =>
         {
             //pMessage = msg.pose.pose.position;
-            robot.CurrentX = msg.pose.pose.position.x;
-            robot.CurrentY = msg.pose.pose.position.y;
-            robot.CurrentZ = msg.pose.pose.position.z;
+            Lars.Instance.CurrentX = msg.pose.pose.position.x;
+            Lars.Instance.CurrentY = msg.pose.pose.position.y;
+            Lars.Instance.CurrentZ = msg.pose.pose.position.z;
             qMessage = msg.pose.pose.orientation;
         });
         
+        rosConnection.Subscribe<OdometryMsg>("/base_controller_node/odom", msg =>
+        {
+            //pMessage = msg.pose.pose.position;
+            Charlie.Instance.CurrentX = msg.pose.pose.position.x;
+            Charlie.Instance.CurrentY = msg.pose.pose.position.y;
+            Charlie.Instance.CurrentZ = msg.pose.pose.position.z;
+            qMessageCharlie = msg.pose.pose.orientation;
+        }
+        );
         //rosConnection.Subscribe<OdometryMsg>("pos");
     }
 
@@ -79,8 +89,19 @@ public class BasicController : MonoBehaviour
     private void Update3DModelInScene()
     {
         //robot3DModel.transform.localPosition = robot.currentPos;
-        robot3DModel.transform.position = new Vector3(robot.CurrentPos.x, robot.CurrentPos.y, robot.CurrentPos.z); //Make that it is on the ground and not in the air
-        robot3DModel.transform.rotation = robot.CurrentRot;
+        if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
+        {
+            robot3DModel.transform.position = new Vector3(Lars.Instance.CurrentPos.x, Lars.Instance.CurrentPos.y, Lars.Instance.CurrentPos.z); //Make that it is on the ground and not in the air
+            robot3DModel.transform.rotation = Lars.Instance.CurrentRot;
+        }
+        else
+        { 
+            robot3DModel.transform.position = new Vector3(Charlie.Instance.CurrentPos.x, Charlie.Instance.CurrentPos.y, Charlie.Instance.CurrentPos.z); //Make that it is on the ground and not in the air
+            Vector3 angles = new Vector3(0, 90, 0);
+            Quaternion temp = new Quaternion();
+            temp.eulerAngles = angles;
+            robot3DModel.transform.rotation = temp;
+        }
     }
 
     /*
@@ -91,12 +112,18 @@ public class BasicController : MonoBehaviour
         Quaternion quad = new Quaternion((float) qMessage.x, (float) qMessage.y,(float) qMessage.z, (float)qMessage.w);
         Vector3 angles = quad.eulerAngles;
         angles.x = 0;
-        angles.y = -angles.z;
+        angles.y = -angles.z; 
         angles.z = 0;
         Quaternion robotAngle = new Quaternion();
         robotAngle.eulerAngles = angles;
-        robot.CurrentRot = robotAngle;
-        Robot.Instance.CurrentRot = robotAngle;
+        Lars.Instance.CurrentRot = robotAngle;
+        
+        
+        Quaternion quadCharlie = new Quaternion((float) qMessageCharlie.x, (float) qMessageCharlie.y,(float) qMessageCharlie.z, (float)qMessageCharlie.w);
+       
+        Charlie.Instance.theta = quadCharlie.eulerAngles.z;
+        
+        Debug.Log("Rot: " + Charlie.Instance.CurrentRot);
     }
     
     /*
@@ -105,8 +132,9 @@ public class BasicController : MonoBehaviour
     private void UpdateRobotPosition()
     {
         //robot.currentPos = new Vector3((float) - pMessage.y, (float) pMessage.z, (float) pMessage.x);
-        robot.CurrentPos = new Vector3((float)- robot.CurrentY,(float) robot.CurrentZ, (float) robot.CurrentX);
-        Robot.Instance.CurrentPos = robot.CurrentPos;
-        
+        Lars.Instance.CurrentPos = new Vector3((float)- Lars.Instance.CurrentY,(float) Lars.Instance.CurrentZ, (float) Lars.Instance.CurrentX);
+        Charlie.Instance.CurrentPos =  new Vector3((float) - Charlie.Instance.CurrentX,(float) Charlie.Instance.CurrentZ, (float) - Charlie.Instance.CurrentY);
+        Debug.Log("Pos: " + Charlie.Instance.CurrentPos);
+       // Robot.Instance.CurrentPos = robot.CurrentPos;
     }
 }

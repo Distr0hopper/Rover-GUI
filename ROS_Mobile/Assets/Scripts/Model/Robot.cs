@@ -30,7 +30,8 @@ namespace Model
             autoDrive,
             manualDrive,
             uwbMission,
-            geoSamaMission
+            geoSamaMission,
+            rieglScan
         }
 
         public OperationMode _operationMode = OperationMode.autoDrive;
@@ -82,13 +83,6 @@ namespace Model
         public float Angle { get; set; } = 0f;
 
         #region World Coordinates
-        public double OrientationX { get; set; }
-
-        public double OrientationY { get; set; }
-    
-        public double CurrentX;
-        public double CurrentY;
-        public double CurrentZ;
         
         public Vector3 GoalInWorldPos { get; private set; }
         

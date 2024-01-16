@@ -21,6 +21,7 @@ namespace myUIController
         private VisualElement UWBPanel;
         private VisualElement GeoSAMAPanel;
         private VisualElement connectionState;
+        private VisualElement rieglPanel;
         private PopupWindow popupWindow;
 
         // Command-Stop Panel
@@ -46,6 +47,7 @@ namespace myUIController
         private Button manualDriveModeButton;
         private Button missionModeUWBButton;
         private Button missionModeGeoSAMAButton;
+        private Button scanModeButton;
 
         // Main Panel 
         private Button switchViewButton;
@@ -61,12 +63,16 @@ namespace myUIController
 
         //GeoSAMA Mode Panel
         private Button startScanButton;
-
+        
+        //Drive Labels
         private Label valueLabel;
         private Label unitLabel;
         private Label inputTypeLabel;
         private Label distanceLabel;
         private Label arrivalLabel;
+        
+        //Riegl Panel
+        private Button startRieglScanButton;
 
         private EnumField changeRobotDropdown;
 
@@ -113,6 +119,8 @@ namespace myUIController
         public static event Action OnStartDriving;
         public static event Action OnManualSteering;
 
+        public static event Action RieglScanStarting;
+
         #endregion
 
         void Start()
@@ -148,7 +156,12 @@ namespace myUIController
             manualDriveModeButton = root.Q<Button>("ManualDriveMode");
             missionModeUWBButton = root.Q<Button>("MissionModeUWB");
             missionModeGeoSAMAButton = root.Q<Button>("MissionModeGeoSAMA");
+            scanModeButton = root.Q<Button>("ScanModeButton");
             changeRobotDropdown = root.Q<EnumField>("RobotChoice");
+            
+            //Riegl Scan Button
+            startRieglScanButton = root.Q<Button>("StartRieglScanButton");
+            
 
             // Panels for the different modes (on the right)
             manualDrivePanel = root.Q<VisualElement>("ManualDrivePanel");
@@ -156,6 +169,7 @@ namespace myUIController
             UWBPanel = root.Q<VisualElement>("UWBPanel");
             GeoSAMAPanel = root.Q<VisualElement>("GeoSAMAPanel");
             driveStopPanel = root.Q<VisualElement>("DriveStopPanel");
+            rieglPanel = root.Q<VisualElement>("RieglPanel"); 
 
 
             // Bot Panel
@@ -196,8 +210,12 @@ namespace myUIController
 
             launchButton.clicked += () => { LaunchActiveUWB(); };
             launchButton.SetEnabled(false); //Cannot be clicked at beginning, need to select UWB Sensor first
-
+            
+            // For UWB
             startScanButton.clicked += () => { StartScan(); };
+            
+            // For Riegl
+            startRieglScanButton.clicked += () => { StartRieglScan(); };
 
             popupWindow.confirmed += () => { EnableLaunch(); };
             popupWindow.canceled += () => { DisableLaunch(); };
@@ -294,6 +312,7 @@ namespace myUIController
             };
             missionModeUWBButton.clicked += () => { SetOperationMode(Robot.OperationMode.uwbMission); };
             missionModeGeoSAMAButton.clicked += () => { SetOperationMode(Robot.OperationMode.geoSamaMission); };
+            scanModeButton.clicked += () => { SetOperationMode(Robot.OperationMode.rieglScan);};
 
             switchViewButton.clicked += () => { SwitchView(); };
 
@@ -307,6 +326,14 @@ namespace myUIController
             //At the beginning, the decrement button should be inactive because the distance is 0 and the angle is 0 
             UpdateButtonStates();
         }
+        
+        private void StartRieglScan()
+        {
+            if (Robot.Instance._operationMode == Robot.OperationMode.rieglScan)
+            {
+                RieglScanStarting?.Invoke();
+            }
+        }
 
         /*
          * Method to reset the UI to the default state, needed when active robot switched
@@ -317,11 +344,13 @@ namespace myUIController
             {
                 missionModeUWBButton.style.display = DisplayStyle.None;
                 missionModeGeoSAMAButton.style.display = DisplayStyle.None;
+                scanModeButton.style.display = DisplayStyle.Flex;
             }
             else
             {
                 missionModeUWBButton.style.display = DisplayStyle.Flex;
                 missionModeGeoSAMAButton.style.display = DisplayStyle.Flex;
+                scanModeButton.style.display = DisplayStyle.None;
             }
 
             //Reset the Operation Mode and show the auto drive panel
@@ -477,10 +506,9 @@ namespace myUIController
             clickPosition.x /= mainView.resolvedStyle.width;
             clickPosition.y /= mainView.resolvedStyle.height;
 
-            Vector3
-                viewportPoint =
-                    new Vector3(clickPosition.x,
-                        1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
+            
+            
+            Vector3 viewportPoint = new Vector3(clickPosition.x, 1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
             Vector3 worldPosition = new Vector3();
             Ray ray = cameraController.activeMainUICamera.ViewportPointToRay(viewportPoint);
 
@@ -489,13 +517,22 @@ namespace myUIController
             if (groundPlane.Raycast(ray, out float enter))
             {
                 worldPosition = ray.GetPoint(enter);
-                marker.transform.position =
-                    new Vector3(worldPosition.x, 0.75f, worldPosition.z); //Add 0.75f to make above the robot model
+                marker.transform.position = new Vector3(worldPosition.x, 0.75f, worldPosition.z); //Add 0.75f to make above the robot model
 
                 // Set the world coordinates in the robot model
                 Robot.Instance.SetGoalInWorldPos(worldPosition);
             }
+            
+            if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
+            {
+                float tempx = worldPosition.x - Charlie.Instance.CurrentPos.x;
+                float tempz = worldPosition.z - Charlie.Instance.CurrentPos.z;
 
+                worldPosition.x = Charlie.Instance.CurrentPos.x + Mathf.Cos((float) Charlie.Instance.theta * Mathf.Deg2Rad) * tempx - Mathf.Sin((float) Charlie.Instance.theta * Mathf.Deg2Rad) * tempz;
+                worldPosition.z = Charlie.Instance.CurrentPos.z + Mathf.Sin((float) Charlie.Instance.theta * Mathf.Deg2Rad) * tempx + Mathf.Cos((float) Charlie.Instance.theta * Mathf.Deg2Rad) * tempz;
+                Robot.Instance.SetGoalInWorldPos(worldPosition);
+            }
+            Debug.Log(worldPosition);
             CalculateDistance(worldPosition);
             ChangeStartDrivingButton(true);
             ChangeMarkerColor(false);
@@ -735,9 +772,18 @@ namespace myUIController
             {
                 Robot.Instance._operationMode = Robot.OperationMode.geoSamaMission;
                 SetGeoSAMAMode();
+            } else if (mode == Robot.OperationMode.rieglScan)
+            {
+                Robot.Instance._operationMode = Robot.OperationMode.rieglScan;
+                SetRieglScanMode();
             }
 
             ChangeOperationButtonColor();
+        }
+
+        private void SetRieglScanMode()
+        {
+            SetPanelDisplay(Robot.OperationMode.rieglScan);
         }
 
         /*
@@ -757,6 +803,7 @@ namespace myUIController
                 (mode == Robot.OperationMode.manualDrive || mode == Robot.OperationMode.autoDrive)
                     ? DisplayStyle.Flex
                     : DisplayStyle.None;
+            rieglPanel.style.display = (mode == Robot.OperationMode.rieglScan) ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void SetManualDriveMode()
@@ -981,7 +1028,8 @@ namespace myUIController
                 { Robot.OperationMode.autoDrive, autoDriveModeButton },
                 { Robot.OperationMode.manualDrive, manualDriveModeButton },
                 { Robot.OperationMode.uwbMission, missionModeUWBButton },
-                { Robot.OperationMode.geoSamaMission, missionModeGeoSAMAButton }
+                { Robot.OperationMode.geoSamaMission, missionModeGeoSAMAButton },
+                { Robot.OperationMode.rieglScan, scanModeButton }
             };
 
             // Iterate through each mode-button pair

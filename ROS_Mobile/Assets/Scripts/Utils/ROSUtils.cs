@@ -25,14 +25,28 @@ public static class ROSUtils  {
         rosMessage.header.stamp = new TimeMsg((uint)stamp_secs, (uint)nanoseconds);
         rosMessage.header.frame_id = "odom_frame";
         
-        // Invert axis because ROS using other Coordinate System
         rosMessage.pose.position = new PointMsg();
-        rosMessage.pose.position.x = unityMessage.z;
-        rosMessage.pose.position.y = - unityMessage.x;
-        rosMessage.pose.position.z = unityMessage.y;
+        Vector2 orientationToFinish = new Vector2();
+        // Invert axis because ROS using other Coordinate System
+        if(Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
+        {
+            rosMessage.pose.position.x = unityMessage.z;
+            rosMessage.pose.position.y = - unityMessage.x;
+            rosMessage.pose.position.z = unityMessage.y;
+            
+            orientationToFinish = new Vector2((float)(rosMessage.pose.position.x - Lars.Instance.OrientationX), (float)(rosMessage.pose.position.y - Lars.Instance.OrientationY));
+            
+        } else if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
+        {
+            rosMessage.pose.position.x = -unityMessage.x;
+            rosMessage.pose.position.y = -unityMessage.z;
+            rosMessage.pose.position.z = unityMessage.y;
+            
+            orientationToFinish = new Vector2((float)(rosMessage.pose.position.x - Charlie.Instance.OrientationX), (float)(rosMessage.pose.position.y - Charlie.Instance.OrientationY));
+        }
 
         // Calculate the orientation
-        Vector2 orientationToFinish = new Vector2((float)(rosMessage.pose.position.x - Robot.Instance.OrientationX), (float)(rosMessage.pose.position.y - Robot.Instance.OrientationY));
+       
         float angle = Vector2.SignedAngle(Vector2.right, orientationToFinish);
         rosMessage.pose.orientation = new QuaternionMsg
         {
@@ -41,10 +55,6 @@ public static class ROSUtils  {
             z = Mathf.Sin(angle * Mathf.Deg2Rad / 2),
             w = Mathf.Cos(angle * Mathf.Deg2Rad / 2)
         };
-        
-        Robot.Instance.OrientationX = rosMessage.pose.position.x;
-        Robot.Instance.OrientationY = rosMessage.pose.position.y;
-        
         return rosMessage;
     }
    

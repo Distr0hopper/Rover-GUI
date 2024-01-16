@@ -115,9 +115,18 @@ public class CameraController : MonoBehaviour
      */
     private void UpdateCameraPosition()
     {
-        mainCamera.transform.position = Robot.Instance.CurrentPos + mainCamOffset;
-        Debug.Log("Robot cur pos: " + Robot.Instance.CurrentPos);
-        secondCamera.transform.position = Robot.Instance.CurrentPos + secondCamOffset;
+        if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
+        {
+        mainCamera.transform.position = Lars.Instance.CurrentPos + mainCamOffset;
+        
+        secondCamera.transform.position = Lars.Instance.CurrentPos + secondCamOffset;
+        }
+        else
+        {
+            mainCamera.transform.position = Charlie.Instance.CurrentPos + mainCamOffset;
+            //mainCamera.transform.rotation = new Quaternion.(mainCamera.transform.rotation.x, Charlie.Instance.currentRotY, mainCamera.transform.rotation.z, mainCamera.transform.rotation.w);
+            secondCamera.transform.position = Charlie.Instance.CurrentPos + secondCamOffset;
+        }
     }
 
     /*

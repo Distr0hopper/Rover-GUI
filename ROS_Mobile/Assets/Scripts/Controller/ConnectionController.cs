@@ -3,16 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using Model;
 using Unity.Robotics.ROSTCPConnector;
+using Unity.Robotics.Visualizations;
 using UnityEngine;
 
 public class ConnectionController : MonoBehaviour
 {
     [SerializeField]
-    private string charlie_ip = "192.168.56.20";
+    private string charlie_ip = "192.168.0.227";
     [SerializeField]
-    private string lars_ip = "192.118.52.31";
+    private string lars_ip = "192.168.0.52";
 
+    [SerializeField] private PointCloud2CustomVisualizerSettings pointClouds;
     public ROSConnection rosConnection { private get; set; }
+    
     private bool _hasConnection;
     
     // Define method for connection status changed event
@@ -54,13 +57,24 @@ public class ConnectionController : MonoBehaviour
         switch (Robot.Instance.ActiveRobot)
         {
             case Robot.ACTIVEROBOT.Charlie:
+                rosConnection.Disconnect();
                 SetCharlieIP();
                 rosConnection.Connect();
                 break;
             case Robot.ACTIVEROBOT.Lars:
+                rosConnection.Disconnect();
                 SetLarsIP();
                 rosConnection.Connect();
+                pointClouds.DestroyAllPointclouds();
                 break;
+        }
+    }
+
+    private void ClearAllPointclouds()
+    {
+        foreach (var pointCloud in PointCloudDrawing.gameObjects)
+        {
+            pointCloud.SetActive(false);
         }
     }
     

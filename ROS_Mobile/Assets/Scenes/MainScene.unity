@@ -862,7 +862,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationSpeed: 2.75
   mainCamOffset: {x: 0, y: 1.4, z: 0}
-  secondCamOffset: {x: 0, y: 1, z: -1}
+  secondCamOffset: {x: -1, y: 1, z: 0}
 --- !u!114 &713207224
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -893,6 +893,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   charlie_ip: 192.168.0.227
   lars_ip: 192.168.0.52
+  pointClouds: {fileID: 11400000, guid: 43d86d6349e5b5bada52154f73499eeb, type: 2}
 --- !u!1 &738457002
 GameObject:
   m_ObjectHideFlags: 0
@@ -1086,7 +1087,7 @@ PrefabInstance:
     - target: {fileID: 8704871610724087355, guid: 7e7b80cc1080672479f6e13ab94bb3b5,
         type: 3}
       propertyPath: m_RosIPAddress
-      value: 192.168.56.20
+      value: 192.168.0.248
       objectReference: {fileID: 0}
     - target: {fileID: 9117757106899039635, guid: 7e7b80cc1080672479f6e13ab94bb3b5,
         type: 3}
@@ -3424,13 +3425,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1893805835}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.008464788, y: 0, z: 0, w: 0.9999642}
+  m_LocalRotation: {x: 0.005985509, y: 0.70708144, z: -0.005985509, w: 0.70708144}
   m_LocalPosition: {x: 0, y: 0.021, z: -2.212}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2110170298}
-  m_LocalEulerAnglesHint: {x: 0.97, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.97, y: 90, z: 0}
 --- !u!1001 &1984271146
 PrefabInstance:
   m_ObjectHideFlags: 0
