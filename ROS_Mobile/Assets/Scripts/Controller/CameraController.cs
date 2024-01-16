@@ -42,7 +42,7 @@ public class CameraController : MonoBehaviour
     #region Serialized Fields
 
     [SerializeField] private Vector3 mainCamOffset;
-    [SerializeField] private Vector3 secondCamOffset;
+    [SerializeField] public Vector3 secondCamOffset;
 
     #endregion
 
@@ -115,19 +115,17 @@ public class CameraController : MonoBehaviour
      */
     private void UpdateCameraPosition()
     {
-        if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
-        {
-        mainCamera.transform.position = Lars.Instance.CurrentPos + mainCamOffset;
+        Vector3 robotPosition = Robot.Instance.Robot3DModel.transform.position;
+        //Update position of the main camera and the second camera to the robot model
+        mainCamera.transform.position = robotPosition + mainCamOffset;
+        secondCamera.transform.position = robotPosition + secondCamOffset;
         
-        secondCamera.transform.position = Lars.Instance.CurrentPos + secondCamOffset;
-        }
-        else
-        {
-            mainCamera.transform.position = Charlie.Instance.CurrentPos + mainCamOffset;
-            //mainCamera.transform.rotation = new Quaternion.(mainCamera.transform.rotation.x, Charlie.Instance.currentRotY, mainCamera.transform.rotation.z, mainCamera.transform.rotation.w);
-            secondCamera.transform.position = Charlie.Instance.CurrentPos + secondCamOffset;
-        }
+        // Update rotation to match the robot's rotation
+        Quaternion robotRotation = Quaternion.Euler(0, Robot.Instance.Robot3DModel.transform.rotation.eulerAngles.y, 0);
+        //mainCamera.transform.rotation = robotRotation * Quaternion.Euler(mainCamOffset);
+        secondCamera.transform.rotation = robotRotation;
     }
+
 
     /*
      * Swap the active camera between the main camera and the second camera

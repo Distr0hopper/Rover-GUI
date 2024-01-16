@@ -123,7 +123,7 @@ public class BasicController : MonoBehaviour
        
         Charlie.Instance.theta = quadCharlie.eulerAngles.z;
         
-        Debug.Log("Rot: " + Charlie.Instance.CurrentRot);
+        //Debug.Log("Rot: " + Charlie.Instance.CurrentRot);
     }
     
     /*
@@ -134,7 +134,7 @@ public class BasicController : MonoBehaviour
         //robot.currentPos = new Vector3((float) - pMessage.y, (float) pMessage.z, (float) pMessage.x);
         Lars.Instance.CurrentPos = new Vector3((float)- Lars.Instance.CurrentY,(float) Lars.Instance.CurrentZ, (float) Lars.Instance.CurrentX);
         Charlie.Instance.CurrentPos =  new Vector3((float) - Charlie.Instance.CurrentX,(float) Charlie.Instance.CurrentZ, (float) - Charlie.Instance.CurrentY);
-        Debug.Log("Pos: " + Charlie.Instance.CurrentPos);
+        //Debug.Log("Pos: " + Charlie.Instance.CurrentPos);
        // Robot.Instance.CurrentPos = robot.CurrentPos;
     }
 }

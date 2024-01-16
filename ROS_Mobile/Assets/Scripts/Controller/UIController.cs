@@ -430,6 +430,14 @@ namespace myUIController
             Robot.ACTIVEROBOT selectedRobot = (Robot.ACTIVEROBOT)newValue;
             Robot.Instance.ActiveRobot = selectedRobot;
             connectionController.ChangeRobotIP();
+            if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
+            {
+                cameraController.secondCamOffset = new Vector3(-1f, 1.29f, 0);
+            }
+            else
+            {
+                cameraController.secondCamOffset = new Vector3(0, 1.29f, -1f);
+            }
             ResetUI();
         }
 
