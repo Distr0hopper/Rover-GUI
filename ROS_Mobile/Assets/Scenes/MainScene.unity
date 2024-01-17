@@ -860,6 +860,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03b26c70eda574748b9a531cd112e8e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainCamera: {fileID: 0}
+  secondCamera: {fileID: 0}
+  manualRotation: {x: 0, y: 0, z: 0, w: 0}
+  manualRotationCharlie: {x: 0, y: 0, z: 0, w: 0}
   rotationSpeed: 2.75
   mainCamOffset: {x: 0, y: 1.4, z: 0}
   secondCamOffset: {x: -1, y: 1.29, z: 0}
@@ -3431,13 +3435,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1893805835}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.006170608, y: 0.7070799, z: -0.006170608, w: 0.7070799}
+  m_LocalRotation: {x: 0.008726558, y: 0, z: 0, w: 0.999962}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2110170298}
-  m_LocalEulerAnglesHint: {x: 1, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 1, y: 0, z: 0}
 --- !u!1001 &1984271146
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -34,6 +34,8 @@ public class ROSSender : MonoBehaviour
         // Register ROS Service
         rosConnection.RegisterRosService<EmptyRequest, EmptyResponse>("/setSingle");
         rosConnection.RegisterRosService<EmptyRequest, EmptyResponse>("/startMeasuring");
+        
+        rosConnection.RegisterRosService<Int32Msg,EmptyResponse>("/WD/lights_out");
     }
     
     /*
@@ -90,6 +92,14 @@ public class ROSSender : MonoBehaviour
         // Make a service call to start the Riegl scan
         await rosConnection.SendServiceMessage<EmptyResponse>("/setSingle",new EmptyRequest());
         await rosConnection.SendServiceMessage<EmptyResponse>("/startMeasuring",new EmptyRequest());
+    }
+    
+    private async void SendWatchdogCommand()
+    {
+        // Wait for 1 second
+        
+        // Make a service call to start the Riegl scan
+        await rosConnection.SendServiceMessage<EmptyResponse>("/WD/lights_out",new Int32Msg(100));
     }
 
     private void SendSteerInfoToCharlie()
@@ -156,5 +166,10 @@ public class ROSSender : MonoBehaviour
         rosConnection.Publish(lars_manualSteerTopicName, moveCommandMsg);
         Lars.Instance.OrientationX = Lars.Instance.CurrentX;
         Lars.Instance.OrientationY = Lars.Instance.CurrentY;
+    }
+
+    private void SendGeosamaScanCommand()
+    {
+        rosConnection.Publish("/startGeosamaScan", new BoolMsg(true));
     }
 }

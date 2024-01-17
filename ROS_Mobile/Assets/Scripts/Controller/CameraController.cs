@@ -1,3 +1,4 @@
+using System.Collections;
 using myUIController;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -12,7 +13,7 @@ public class CameraController : MonoBehaviour
 
     private Button m_inreaseFOV;
     private Button m_decreaseFOV;
-    private Button resetButton;
+    public Button resetButton;
     
     #endregion
 
@@ -20,14 +21,15 @@ public class CameraController : MonoBehaviour
 
     private Vector2 m_JoystickPointerDownPosition;
     private Vector2 m_JoystickDelta; // Between -1 and 1
-    private Camera mainCamera;
-    private Camera secondCamera;
+    public Camera mainCamera;
+    public Camera secondCamera;
 
     // Initial values for the cameras (used for reset)
     private float secondCamStartFOV = 90f;
     private float mainCamStartSize = 5f;
-    private Vector3 secondCamStartRot = new Vector3(0.97f, 0f, 0f);
-    private Vector3 mainCamStartRot = new Vector3(90f, 0f, 0f);
+    public Quaternion manualRotation;
+    public Quaternion manualRotationCharlie;
+    private Quaternion relativeRotationToRobot;
     
     #endregion
 
@@ -84,6 +86,10 @@ public class CameraController : MonoBehaviour
             }
         }
         activeMainUICamera = mainCamera;
+        manualRotation = secondCamera.transform.rotation;
+        manualRotationCharlie = Quaternion.identity;
+        Quaternion robotRotation = Quaternion.Euler(0, Robot.Instance.Robot3DModel.transform.rotation.eulerAngles.y, 0);
+        relativeRotationToRobot = Quaternion.Inverse(robotRotation) * secondCamera.transform.rotation;
     }
 
 
@@ -93,20 +99,46 @@ public class CameraController : MonoBehaviour
 
         if (InputDetected())
         {
-            ShowResetButton(); //Show the reset button if the joystick is moved
-            var rotationY = GetJoystickInput(out var rotationQuat);
-            // Cameras are rotated differently since Main Camera (Birdseye view) is a orthographic camera and the other camera is perspective
-            if (UIController.isMainActive)
-            {
-                Quaternion deltaT = Quaternion.AngleAxis(rotationY, Vector3.forward);
-                activeMainUICamera.transform.rotation *= deltaT;
-            }
-            else
-            {
-                activeMainUICamera.transform.rotation *= rotationQuat;
-            }
-                RotateCamera();
+            HandleCameraRotation();
         }
+
+        UpdateMainCameraRotation();
+        UpdateSecondCameraRotation();
+    }
+
+    private void HandleCameraRotation()
+    {
+        ShowResetButton();
+        Vector3 rotationInput = GetJoystickInput();
+    
+        if (!UIController.isMainActive)
+        {
+            // Apply rotation to the second camera
+            manualRotation *= Quaternion.Euler(rotationInput.x, rotationInput.y, 0);
+        }
+        else
+        {
+            // Apply rotation to the main camera
+            mainCamera.transform.RotateAround(Robot.Instance.Robot3DModel.transform.position, Vector3.up, rotationInput.y);
+            manualRotationCharlie *= Quaternion.Euler(rotationInput.x, rotationInput.y, 0);
+        }
+    }
+
+    private void UpdateMainCameraRotation()
+    {
+        if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
+        {
+            Quaternion charlieRotation = Quaternion.Euler(0, Robot.Instance.Robot3DModel.transform.rotation.eulerAngles.y, 0);
+            Quaternion combinedCharlieRotation = charlieRotation * manualRotationCharlie;
+            mainCamera.transform.rotation = Quaternion.Euler(90, combinedCharlieRotation.eulerAngles.y, 0);
+        }
+    }
+
+    private void UpdateSecondCameraRotation()
+    {
+        Quaternion robotRotation = Quaternion.Euler(0, Robot.Instance.Robot3DModel.transform.rotation.eulerAngles.y, 0);
+        Quaternion combinedRotation = robotRotation * relativeRotationToRobot * manualRotation;
+        secondCamera.transform.rotation = Quaternion.Euler(combinedRotation.eulerAngles.x, combinedRotation.eulerAngles.y, 0);
     }
 
     /*
@@ -119,11 +151,6 @@ public class CameraController : MonoBehaviour
         //Update position of the main camera and the second camera to the robot model
         mainCamera.transform.position = robotPosition + mainCamOffset;
         secondCamera.transform.position = robotPosition + secondCamOffset;
-        
-        // Update rotation to match the robot's rotation
-        Quaternion robotRotation = Quaternion.Euler(0, Robot.Instance.Robot3DModel.transform.rotation.eulerAngles.y, 0);
-        //mainCamera.transform.rotation = robotRotation * Quaternion.Euler(mainCamOffset);
-        secondCamera.transform.rotation = robotRotation;
     }
 
 
@@ -142,16 +169,6 @@ public class CameraController : MonoBehaviour
         }
     }
     
-    /*
-     * Rotate the camera
-     */
-    private void RotateCamera()
-    {
-        Vector3 currentRotation = activeMainUICamera.transform.eulerAngles;
-        // Set the z euler angle of transformation to 0
-        currentRotation.z = 0; // Lock the Z-axis rotation
-        activeMainUICamera.transform.eulerAngles = currentRotation;
-    }
     
     /*
      * Reset the camera FOV to its initial value
@@ -167,8 +184,30 @@ public class CameraController : MonoBehaviour
      */
     public void ResetCameraRotation()
     {
-        mainCamera.transform.rotation = Quaternion.Euler(mainCamStartRot);
-        secondCamera.transform.rotation = Quaternion.Euler(secondCamStartRot);
+        Quaternion robotRotation =  Robot.Instance.Robot3DModel.transform.rotation;
+        mainCamera.transform.rotation = Quaternion.Euler(90, robotRotation.eulerAngles.y, 0);
+        secondCamera.transform.rotation = robotRotation;
+        manualRotation = Quaternion.identity;
+        relativeRotationToRobot = Quaternion.identity;
+        manualRotationCharlie = Quaternion.identity;
+    }
+    
+    private IEnumerator ResetCameraRotationCoroutine()
+    {
+        yield return new WaitForSeconds(0f);
+
+        // Reset camera rotation logic
+        Quaternion robotRotation = Robot.Instance.Robot3DModel.transform.rotation;
+        mainCamera.transform.rotation = Quaternion.Euler(90, robotRotation.eulerAngles.y, 0);
+        secondCamera.transform.rotation = robotRotation;
+        manualRotation = Quaternion.identity;
+        relativeRotationToRobot = Quaternion.identity;
+        manualRotationCharlie = Quaternion.identity;
+    }
+    
+    public void StartResetCameraRotation()
+    {
+        StartCoroutine(ResetCameraRotationCoroutine());
     }
     
     /*
@@ -182,6 +221,14 @@ public class CameraController : MonoBehaviour
 
         rotationQuat = Quaternion.Euler(rotationX, rotationY, rotationZ);
         return rotationY;
+    }
+    
+    private Vector3 GetJoystickInput()
+    {
+        float rotationX = m_JoystickDelta.y * rotationSpeed;
+        float rotationY = m_JoystickDelta.x * rotationSpeed;
+
+        return new Vector3(rotationX, rotationY, 0); // Z-axis rotation is always 0
     }
     
     /*

@@ -80,14 +80,7 @@ namespace myUIController
         private ProgressBar scanProgressRiegl;
 
         #endregion
-
-        #region Cameras
-
-        private Camera mainCamera;
-        private Camera secondCamera;
-
-        #endregion
-
+        
         #region Public Properties
 
         [SerializeField] public GameObject marker;
@@ -348,16 +341,14 @@ namespace myUIController
                 missionModeUWBButton.style.display = DisplayStyle.None;
                 missionModeGeoSAMAButton.style.display = DisplayStyle.None;
                 scanModeButton.style.display = DisplayStyle.Flex;
-                marker.transform.position = new Vector3(Lars.Instance.CurrentPos.x, 0f, Lars.Instance.CurrentPos.z);
             }
             else
             {
                 missionModeUWBButton.style.display = DisplayStyle.Flex;
                 missionModeGeoSAMAButton.style.display = DisplayStyle.Flex;
                 scanModeButton.style.display = DisplayStyle.None;
-                marker.transform.position = new Vector3(Charlie.Instance.CurrentPos.x, 0f, Charlie.Instance.CurrentPos.z);
             }
-
+            marker.transform.position = new Vector3(Robot.Instance.Robot3DModel.transform.position.x, 0f, Robot.Instance.Robot3DModel.transform.position.z);
             //Reset the Operation Mode and show the auto drive panel
             Robot.Instance._operationMode = Robot.OperationMode.autoDrive;
             SetOperationMode(Robot.Instance._operationMode);
@@ -380,7 +371,10 @@ namespace myUIController
             cameraController.ResetCameraFOV();
 
             //Reset the Camera Rotation
-            cameraController.ResetCameraRotation();
+            cameraController.StartResetCameraRotation();
+            
+            // Hide reset FOV / Rotation Button
+            cameraController.resetButton.style.display = DisplayStyle.None;
         }
 
         private void toggleModelVisability()
@@ -429,7 +423,15 @@ namespace myUIController
         {
             Robot.ACTIVEROBOT selectedRobot = (Robot.ACTIVEROBOT)newValue;
             Robot.Instance.ActiveRobot = selectedRobot;
-            connectionController.ChangeRobotIP();
+            try
+            {
+                connectionController.ChangeRobotIP();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+            // The Offset of the second camera is different for Charlie and Lars, because Charlies camera is rotated 90 deg 
             if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
             {
                 cameraController.secondCamOffset = new Vector3(-1f, 1.29f, 0);
@@ -528,7 +530,7 @@ namespace myUIController
             {
                 worldPosition = ray.GetPoint(enter);
                 marker.transform.position = new Vector3(worldPosition.x, 0f, worldPosition.z); //Add 0.75f to make above the robot model
-
+                marker.transform.LookAt(cameraController.secondCamera.transform, Vector3.down); //rotate towards the camera
                 // Set the world coordinates in the robot model
                 Robot.Instance.SetGoalInWorldPos(worldPosition);
             }

@@ -109,8 +109,8 @@ public class BasicController : MonoBehaviour
      */
     private void UpdateRobotRotation()
     {
-        Quaternion quad = new Quaternion((float) qMessage.x, (float) qMessage.y,(float) qMessage.z, (float)qMessage.w);
-        Vector3 angles = quad.eulerAngles;
+        Quaternion inputQuaternion = new Quaternion((float) qMessage.x, (float) qMessage.y,(float) qMessage.z, (float)qMessage.w);
+        Vector3 angles = inputQuaternion.eulerAngles;
         angles.x = 0;
         angles.y = -angles.z; 
         angles.z = 0;
@@ -123,7 +123,6 @@ public class BasicController : MonoBehaviour
        
         Charlie.Instance.theta = quadCharlie.eulerAngles.z;
         
-        //Debug.Log("Rot: " + Charlie.Instance.CurrentRot);
     }
     
     /*
