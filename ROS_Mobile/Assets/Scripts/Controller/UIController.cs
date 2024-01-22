@@ -20,9 +20,12 @@ namespace myUIController
         private VisualElement manualDrivePanel;
         private VisualElement UWBPanel;
         private VisualElement GeoSAMAPanel;
-        private VisualElement connectionState;
         private VisualElement rieglPanel;
         private PopupWindow popupWindow;
+        
+        // Connection Panel
+        private VisualElement connectionState;
+        private Label connectionLabel;
 
         // Command-Stop Panel
         private Button commandButton;
@@ -73,6 +76,8 @@ namespace myUIController
         
         //Riegl Panel
         private Button startRieglScanButton;
+        private Label timePasedLabel;
+        private VisualElement rieglCautionPanel;
 
         private EnumField changeRobotDropdown;
 
@@ -103,7 +108,6 @@ namespace myUIController
         private Color greenButtonColor = new Color(0.0f, 0.7119f, 0.1031f);
         private Color disabledButtonColor = new Color(0.26f, 0.26f, 0.26f, 1f);
         private Color unselectedButtonColor = new Color(0.73f, 0.73f, 0.73f);
-        private Color selectButtonColor = new Color(0.43f, 0.43f, 0.43f);
 
         #endregion
 
@@ -156,6 +160,8 @@ namespace myUIController
             //Riegl Panel
             startRieglScanButton = root.Q<Button>("StartRieglScanButton");
             scanProgressRiegl = root.Q<ProgressBar>("ScanProgressRiegl");
+            timePasedLabel = root.Q<Label>("timePassedLabel");
+            rieglCautionPanel = root.Q<VisualElement>("RieglScanCaution");
             
 
             // Panels for the different modes (on the right)
@@ -169,6 +175,7 @@ namespace myUIController
 
             // Bot Panel
             connectionState = root.Q<VisualElement>("ConnectionState");
+            connectionLabel = root.Q<Label>("ConnectionLabel");
 
             // Auto Drive Panel 
             distanceLabel = root.Q<Label>("DistanceLabel");
@@ -327,8 +334,34 @@ namespace myUIController
             if (Robot.Instance._operationMode == Robot.OperationMode.rieglScan)
             {
                 RieglScanStarting?.Invoke();
+                StartScan();
+                UpdateTimePassedLabel();
+                rieglCautionPanel.style.display = DisplayStyle.Flex;
             }
-            StartScan();
+        }
+        
+        /*
+         * Update the time passed label in the UI.
+         * Start by 6 mins and count down to 0 in the format mm:ss
+         */
+        public void UpdateTimePassedLabel()
+        {
+            StartCoroutine(UpdateTimePassedLabelCoroutine());
+        }
+        
+        private IEnumerator UpdateTimePassedLabelCoroutine()
+        {
+            int time = 360;
+            while (time > 0)
+            {
+                int minutes = time / 60;
+                int seconds = time % 60;
+                string timeString = minutes.ToString("00") + ":" + seconds.ToString("00");
+                timePasedLabel.text = timeString;
+                time--;
+                yield return new WaitForSeconds(1);
+            }
+            timePasedLabel.text = "00:00";
         }
 
         /*
@@ -412,8 +445,16 @@ namespace myUIController
         private void HandleConnectionStatusChanged(bool isConnected)
         {
             // Update the connection state in the UI
-            connectionState.style.backgroundColor =
-                isConnected ? new StyleColor(Color.green) : new StyleColor(Color.red);
+            if (isConnected)
+            {
+                connectionState.style.backgroundColor = new StyleColor(greenButtonColor);
+                connectionLabel.text = "Connected";
+            }
+            else
+            {
+                connectionState.style.backgroundColor = new StyleColor(Color.red);
+                connectionLabel.text = "Disconnected";
+            }
         }
 
         /*
@@ -479,7 +520,7 @@ namespace myUIController
         {
             if (selectedButton != null)
             {
-                selectedButton.style.backgroundColor = new StyleColor(selectButtonColor);
+                selectedButton.style.backgroundColor = new StyleColor(greenButtonColor);
             }
 
             foreach (var button in unselectedButtons)
@@ -517,8 +558,6 @@ namespace myUIController
             // Convert click position to a proportion of the VisualElement's size (because it is in Pixels and not in World Units)
             clickPosition.x /= mainView.resolvedStyle.width;
             clickPosition.y /= mainView.resolvedStyle.height;
-
-            
             
             Vector3 viewportPoint = new Vector3(clickPosition.x, 1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
             Vector3 worldPosition = new Vector3();
@@ -556,7 +595,8 @@ namespace myUIController
         private void CalculateDistance(Vector3 worldPosition)
         {
             // Calculate the distance between the robot and the goal
-            float distance = Vector3.Distance(Robot.Instance.CurrentPos, worldPosition);
+            float distance = Vector3.Distance(Robot.Instance.Robot3DModel.transform.position, worldPosition);
+            distance -= 0.5f; // Subtract the radius of the robot
             Debug.Log("Distance: " + distance + " m");
             UpdateDistanceLabel(distance);
         }
@@ -882,10 +922,10 @@ namespace myUIController
                 }
 
                 // Change the border color of the clicked button
-                clickedButton.style.borderBottomColor = Color.green;
-                clickedButton.style.borderTopColor = Color.green;
-                clickedButton.style.borderLeftColor = Color.green;
-                clickedButton.style.borderRightColor = Color.green;
+                clickedButton.style.borderBottomColor = greenButtonColor;
+                clickedButton.style.borderTopColor = greenButtonColor;
+                clickedButton.style.borderLeftColor = greenButtonColor;
+                clickedButton.style.borderRightColor = greenButtonColor;
 
                 // Update the last clicked button
                 activeTriggerButton = clickedButton;
@@ -898,6 +938,7 @@ namespace myUIController
                     //launchButton.text = "UWB already launched, try again?";
                     //launchButton.style.backgroundColor = new StyleColor(Color.yellow);
                     popupWindow.style.display = DisplayStyle.Flex;
+                    launchButton.SetEnabled(false);
                 }
                 else
                 {
@@ -949,7 +990,6 @@ namespace myUIController
          */
         public void StartScan()
         {
-            // TODO: Send message to ROS to start the scan 
             StartCoroutine(FillProgressBar());
         }
 
@@ -1057,6 +1097,7 @@ namespace myUIController
          */
         private IEnumerator FillProgressBar()
         {
+            // On Charlie start GeoSAMA scan (5 seconds)
             if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
             {
                 scanProgressBar.value = 0;
@@ -1074,6 +1115,7 @@ namespace myUIController
                 // Set text to "Scan finished" from the progress bar
                 scanProgressBar.title = "Scan finished";
             }
+            // On Lars start Riegl Scan (6 mins)
             else
             {
                 scanProgressRiegl.value = 0;
@@ -1090,8 +1132,8 @@ namespace myUIController
                 scanProgressRiegl.value = scanProgressRiegl.highValue;
                 // Set text to "Scan finished" from the progress bar
                 scanProgressRiegl.title = "Scan finished";
+                rieglCautionPanel.style.display = DisplayStyle.None;
             }
-          
         }
 
         /*
