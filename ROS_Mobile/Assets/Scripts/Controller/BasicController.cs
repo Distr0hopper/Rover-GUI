@@ -60,10 +60,13 @@ public class BasicController : MonoBehaviour
             uiController.RenderRealsenseCamera(msg);
         });
         
-        rosConnection.Subscribe<CompressedImageMsg>("/Cam3/camera/image_raw/compressed", msg =>
+        rosConnection.Subscribe<CompressedImageMsg>("/camera/charlie/fisheye1/compressed", msg =>
         {
             uiController.RenderGeoSamaCamera(msg);
         });
+        
+        //When the back button of the pen is pressed, log message
+        
     }
     
 

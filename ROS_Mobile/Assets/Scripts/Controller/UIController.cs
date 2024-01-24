@@ -6,6 +6,7 @@ using Model;
 using RosMessageTypes.Sensor;
 using Unity.Robotics.ROSTCPConnector.MessageGeneration;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 using Utils;
@@ -125,6 +126,7 @@ namespace myUIController
         private Color greenButtonColor = new Color(0.0f, 0.7119f, 0.1031f);
         private Color disabledButtonColor = new Color(0.26f, 0.26f, 0.26f, 1f);
         private Color unselectedButtonColor = new Color(0.73f, 0.73f, 0.73f);
+        float distance = 0;
 
         #endregion
 
@@ -240,7 +242,7 @@ namespace myUIController
             debugButton.clicked += () =>
             {
                 connectionController.rosConnection.ShowHud = !connectionController.rosConnection.ShowHud;
-                connectionController.rosConnection.HUDPanel.gameObject.SetActive( connectionController.rosConnection.ShowHud);
+                connectionController.rosConnection.InitializeHUD();
             };
 
             hideCamera.clicked += () =>
@@ -254,7 +256,7 @@ namespace myUIController
                     cameraWindowLars.style.display = cameraWindowLars.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None; 
                 }
                 
-                hideCamera.text = hideCamera.text.Equals("Hide Camera") ? "Show Camera" : "Hide Camera";
+                hideCamera.text = hideCamera.text.Equals("Show Camera") ? "Hide Camera" : "Show Camera";
             };
 
             // Click on mainview, screenpoint is converted to worldpoint
@@ -452,9 +454,13 @@ namespace myUIController
             StartCoroutine(InitializeAfterLayout());
             //At the beginning, the decrement button should be inactive because the distance is 0 and the angle is 0 
             UpdateButtonStates();
-            connectionController.rosConnection.ShowHud = !connectionController.rosConnection.ShowHud;
-            connectionController.rosConnection.HUDPanel.gameObject.SetActive(connectionController.rosConnection.ShowHud);
+            cameraWindowCharlie.style.display = DisplayStyle.None;
+            cameraWindowLars.style.display = DisplayStyle.None;
+
+            //connectionController.rosConnection.HUDPanel.gameObject.SetActive(showHud);
         }
+        
+
         
         public void RenderRealsenseCamera(CompressedImageMsg msg)
         {
@@ -500,6 +506,7 @@ namespace myUIController
         public void RenderGeoSamaCamera(CompressedImageMsg msg)
         {
             Texture2D tex2D = msg.ToTexture2D();
+            //tex2D = rotateTexture(tex2D, true);
             RenderTexture renderTex = RenderTexture.GetTemporary(
                 tex2D.width,
                 tex2D.height,
@@ -518,6 +525,31 @@ namespace myUIController
             RenderTexture.ReleaseTemporary(renderTex);
             
             Destroy(tex2D);
+        }
+        
+        Texture2D rotateTexture(Texture2D originalTexture, bool clockwise)
+        {
+            Color32[] original = originalTexture.GetPixels32();
+            Color32[] rotated = new Color32[original.Length];
+            int w = originalTexture.width;
+            int h = originalTexture.height;
+
+            int iRotated, iOriginal;
+
+            for (int j = 0; j < h; ++j)
+            {
+                for (int i = 0; i < w; ++i)
+                {
+                    iRotated = (i + 1) * h - j - 1;
+                    iOriginal = clockwise ? original.Length - 1 - (j * w + i) : j * w + i;
+                    rotated[iRotated] = original[iOriginal];
+                }
+            }
+
+            Texture2D rotatedTexture = new Texture2D(h, w);
+            rotatedTexture.SetPixels32(rotated);
+            rotatedTexture.Apply();
+            return rotatedTexture;
         }
 
         private void ShowPopupWindow()
@@ -802,8 +834,9 @@ namespace myUIController
             UpdateArrivalLabel(distance);
         }
         
-        private void UpdateArrivalLabel(float distance)
+        private void UpdateArrivalLabel(float distance = 0)
         {
+            if (distance == 0) return;
             // The distance only in 2 decimal places
             distance = (float)Math.Round(distance, 2);
             string distanceString = distance.ToString();
@@ -819,13 +852,18 @@ namespace myUIController
 
         private void UpdateArrivalDistance()
         {
+            
             // Calculate the distance between the robot and the marker
-            float distance = Vector3.Distance(Robot.Instance.Robot3DModel.transform.position, marker.transform.position) - 0.5f;
+            if (arrow.GetComponent<MeshRenderer>().material.color == Color.green)
+            {
+                distance = Vector3.Distance(Robot.Instance.Robot3DModel.transform.position, marker.transform.position) - 0.5f;
+            }
 
             // Consider the robot to have arrived if the distance is less than 0.1 units
-            if (distance < 0.1f)
+            if (distance < 0.05f)
             {
                 arrivalLabel.text = "0 m";
+                ChangeMarkerColor(false);
             }
             else
             {

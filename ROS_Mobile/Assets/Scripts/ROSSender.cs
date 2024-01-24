@@ -29,6 +29,7 @@ public class ROSSender : MonoBehaviour
         rosConnection.RegisterPublisher<BoolMsg>("/cheese/triggerImage");
         rosConnection.RegisterPublisher<BoolMsg>("/uwb/startCalib");
         rosConnection.RegisterPublisher<CompressedImageMsg>("/camera/fisheye1/image_raw/compressed");
+        rosConnection.RegisterPublisher<CompressedImageMsg>("/camera/charlie/fisheye1/compressed");
         
         // Wait for GUI to be clicked
         UIController.OnStartDriving += SendPointToDrive;
