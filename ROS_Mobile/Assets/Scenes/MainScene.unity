@@ -860,13 +860,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03b26c70eda574748b9a531cd112e8e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainCamera: {fileID: 0}
-  secondCamera: {fileID: 0}
+  mainCamera: {fileID: 963194227}
+  secondCamera: {fileID: 1893805838}
   manualRotation: {x: 0, y: 0, z: 0, w: 0}
   manualRotationCharlie: {x: 0, y: 0, z: 0, w: 0}
   rotationSpeed: 2.75
   mainCamOffset: {x: 0, y: 1.4, z: 0}
-  secondCamOffset: {x: -1, y: 1.29, z: 0}
+  secondCamRelativToRobotOffset: {x: -1, y: 1.29, z: 0}
 --- !u!114 &713207224
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -882,6 +882,9 @@ MonoBehaviour:
   marker: {fileID: 764472803}
   mainViewTexture: {fileID: 8400000, guid: 027156004e5e2924aab187595d0c4114, type: 2}
   secondViewTexture: {fileID: 8400000, guid: ec718f131e6ba7945892e7ab69e5db16, type: 2}
+  imageTextureRealsense: {fileID: 8400000, guid: 1131b203e65aae678b468583d8da62d5,
+    type: 2}
+  imageTextureGeoSAMA: {fileID: 8400000, guid: 6557fdd9db55c148aaada62d935db840, type: 2}
   arrow: {fileID: 764472802}
 --- !u!114 &713207225
 MonoBehaviour:
@@ -895,10 +898,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2733b5fcdf498c62d9c7170b9d8cf734, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  charlie_ip: 192.168.178.22
+  charlie_ip: 192.168.0.227
   lars_ip: 192.168.0.52
   pointClouds: {fileID: 11400000, guid: 43d86d6349e5b5bada52154f73499eeb, type: 2}
-  laserScan: {fileID: 11400000, guid: f53165fb8c4d340e3ad973ec7784242e, type: 2}
+  laserScan: {fileID: 11400000, guid: 20d1ece4618d47a89a3ddd4348dbf91e, type: 2}
 --- !u!1 &738457002
 GameObject:
   m_ObjectHideFlags: 0
@@ -1088,11 +1091,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8704871610724087355, guid: 7e7b80cc1080672479f6e13ab94bb3b5,
-        type: 3}
-      propertyPath: m_RosIPAddress
-      value: 192.168.0.248
       objectReference: {fileID: 0}
     - target: {fileID: 9117757106899039635, guid: 7e7b80cc1080672479f6e13ab94bb3b5,
         type: 3}
@@ -2150,6 +2148,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Topic: 
   m_ID: 1285883483-0
+  renderTexture: {fileID: 0}
 --- !u!1 &1421830882
 GameObject:
   m_ObjectHideFlags: 0
@@ -2485,6 +2484,16 @@ PrefabInstance:
       propertyPath: m_ID
       value: 1657468168323334076-1588145924
       objectReference: {fileID: 0}
+    - target: {fileID: 1657468168323334076, guid: 7e8ecfd17cd58c247916864b74797f3f,
+        type: 3}
+      propertyPath: m_Topic
+      value: /camera/fisheye1/image_raw/compressed
+      objectReference: {fileID: 0}
+    - target: {fileID: 1657468168323334076, guid: 7e8ecfd17cd58c247916864b74797f3f,
+        type: 3}
+      propertyPath: renderTexture
+      value: 
+      objectReference: {fileID: 8400000, guid: 1131b203e65aae678b468583d8da62d5, type: 2}
     - target: {fileID: 1875245268313931979, guid: 7e8ecfd17cd58c247916864b74797f3f,
         type: 3}
       propertyPath: m_ID
@@ -2710,6 +2719,11 @@ PrefabInstance:
       propertyPath: m_Topic
       value: /LMS
       objectReference: {fileID: 0}
+    - target: {fileID: 5222529248919960493, guid: 7e8ecfd17cd58c247916864b74797f3f,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5315367504069929536, guid: 7e8ecfd17cd58c247916864b74797f3f,
         type: 3}
       propertyPath: m_ID
@@ -2859,6 +2873,10 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4947339100352685114, guid: 7e8ecfd17cd58c247916864b74797f3f,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1588145927}
     - targetCorrespondingSourceObject: {fileID: 5240387698711624104, guid: 7e8ecfd17cd58c247916864b74797f3f,
         type: 3}
       insertIndex: -1
@@ -2870,6 +2888,27 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1588145924}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1588145926 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4947339100352685114, guid: 7e8ecfd17cd58c247916864b74797f3f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1588145924}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1588145927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1588145926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ef526bd18ea1c806a107b6d730874df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Topic: /LMS
+  m_ID: 
+  m_Settings: {fileID: 11400000, guid: 20d1ece4618d47a89a3ddd4348dbf91e, type: 2}
 --- !u!1 &1614353644
 GameObject:
   m_ObjectHideFlags: 0

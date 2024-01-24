@@ -3,7 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Model;
+using RosMessageTypes.Sensor;
+using Unity.Robotics.ROSTCPConnector.MessageGeneration;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 using Utils;
 
@@ -13,6 +16,10 @@ namespace myUIController
     {
         #region UIElements
 
+        // Bottom Panel
+        private Button closeButton;
+        private Button debugButton;
+
         private VisualElement mainView; //View which shows RenderTexture from Camera 
         private VisualElement secondView; //View which shows Top-Down view of the map
         private VisualElement driveStopPanel;
@@ -21,6 +28,8 @@ namespace myUIController
         private VisualElement UWBPanel;
         private VisualElement GeoSAMAPanel;
         private VisualElement rieglPanel;
+        private VisualElement cameraWindowCharlie;
+        private VisualElement cameraWindowLars;
         private PopupWindow popupWindow;
         
         // Connection Panel
@@ -55,6 +64,7 @@ namespace myUIController
         // Main Panel 
         private Button switchViewButton;
         private Button hideModel;
+        private Button hideCamera;
 
         //UWB Mode Panel
         private Button launchButton;
@@ -63,6 +73,9 @@ namespace myUIController
         private Button trigger3Button;
         private Button trigger4Button;
         private Button activeTriggerButton; //Button which is currently active (trigger 1-4)
+        private Button rotate45Button;
+        private Button rotate90Button;
+        private Button calibrateButton;
 
         //GeoSAMA Mode Panel
         private Button startScanButton;
@@ -84,6 +97,8 @@ namespace myUIController
         private ProgressBar scanProgressBar;
         private ProgressBar scanProgressRiegl;
 
+        private Button lastClickedButton;
+
         #endregion
         
         #region Public Properties
@@ -91,6 +106,8 @@ namespace myUIController
         [SerializeField] public GameObject marker;
         [SerializeField] public RenderTexture mainViewTexture;
         [SerializeField] public RenderTexture secondViewTexture;
+        [FormerlySerializedAs("imageTexture")] [SerializeField] public RenderTexture imageTextureRealsense;
+        [SerializeField] public RenderTexture imageTextureGeoSAMA;
         public static bool isMainActive = true;
         [HideInInspector] public UIDocument UIDocument { private get; set; }
         public CameraController cameraController { private get; set; }
@@ -116,8 +133,13 @@ namespace myUIController
         // Event is triggered when Button is Clicked
         public static event Action OnStartDriving;
         public static event Action OnManualSteering;
-
         public static event Action RieglScanStarting;
+
+        public static event Action LaunchUWB;
+
+        public static event Action StartGeoSama;
+
+        public static event Action StartUwbCalibration;
 
         #endregion
 
@@ -125,8 +147,15 @@ namespace myUIController
         {
             // Get the elements from the UI
             var root = UIDocument.rootVisualElement;
+
+            // Bot Panel
+            closeButton = root.Q<Button>("CloseButton");
+            debugButton = root.Q<Button>("DebugButton");
+            
             mainView = root.Q<VisualElement>("MainView");
             secondView = root.Q<VisualElement>("secondView");
+            cameraWindowCharlie = root.Q<VisualElement>("CameraWindowCharlie");
+            cameraWindowLars = root.Q<VisualElement>("CameraWindowLars");
 
             // Start-Stop Buttons
             commandButton = root.Q<Button>("bStartDrive");
@@ -171,8 +200,8 @@ namespace myUIController
             GeoSAMAPanel = root.Q<VisualElement>("GeoSAMAPanel");
             driveStopPanel = root.Q<VisualElement>("DriveStopPanel");
             rieglPanel = root.Q<VisualElement>("RieglPanel"); 
-
-
+            
+            
             // Bot Panel
             connectionState = root.Q<VisualElement>("ConnectionState");
             connectionLabel = root.Q<Label>("ConnectionLabel");
@@ -184,6 +213,7 @@ namespace myUIController
             // Main view Panel
             hideModel = root.Q<Button>("HideModel");
             switchViewButton = root.Q<Button>("switchView");
+            hideCamera = root.Q<Button>("HideCamera");
 
             // UWB Panel
             launchButton = root.Q<Button>("LaunchButton");
@@ -191,12 +221,41 @@ namespace myUIController
             trigger2Button = root.Q<Button>("Trigger2");
             trigger3Button = root.Q<Button>("Trigger3");
             trigger4Button = root.Q<Button>("Trigger4");
+            rotate45Button = root.Q<Button>("Rotate45Deg");
+            rotate90Button = root.Q<Button>("Rotate90Deg");
             popupWindow = root.Q<PopupWindow>("PopupWindow"); // for UWB
+            calibrateButton = root.Q<Button>("CalibrateButton");
 
             // GeoSAMA Panel
             startScanButton = root.Q<Button>("StartScan");
             scanProgressBar = root.Q<ProgressBar>("ScanProgress");
 
+            closeButton.clicked += () =>
+            {
+                popupWindow.text.text = "Are you sure you want to close the application?";
+                ShowPopupWindow();
+                lastClickedButton = closeButton;
+            };
+            
+            debugButton.clicked += () =>
+            {
+                connectionController.rosConnection.ShowHud = !connectionController.rosConnection.ShowHud;
+                connectionController.rosConnection.HUDPanel.gameObject.SetActive( connectionController.rosConnection.ShowHud);
+            };
+
+            hideCamera.clicked += () =>
+            {
+                if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
+                {
+                    cameraWindowCharlie.style.display = cameraWindowCharlie.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None; 
+                }
+                else
+                {
+                    cameraWindowLars.style.display = cameraWindowLars.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None; 
+                }
+                
+                hideCamera.text = hideCamera.text.Equals("Hide Camera") ? "Show Camera" : "Hide Camera";
+            };
 
             // Click on mainview, screenpoint is converted to worldpoint
             mainView.RegisterCallback<ClickEvent>(ScreenToWorld);
@@ -205,22 +264,87 @@ namespace myUIController
             commandButton.clicked += () => { SendSteeringCommand(); };
             commandButton.SetEnabled(false); //Cannot be clicked at beginning, need to set goal first 
 
-            trigger1Button.clicked += () => { SetActiveTriggerButton(trigger1Button); };
-            trigger2Button.clicked += () => { SetActiveTriggerButton(trigger2Button); };
-            trigger3Button.clicked += () => { SetActiveTriggerButton(trigger3Button); };
-            trigger4Button.clicked += () => { SetActiveTriggerButton(trigger4Button); };
+            trigger1Button.clicked += () => { 
+                HidePopupWindow();
+                SetActiveTriggerButton(trigger1Button);
+                popupWindow.text.text = "UWB-1 has been launched before! Are you sure you want to launch it again?";
+                lastClickedButton = trigger1Button;
+            };
+            trigger2Button.clicked += () =>
+            {
+                HidePopupWindow();
+                SetActiveTriggerButton(trigger2Button); 
+                lastClickedButton = trigger2Button;
+                popupWindow.text.text = "UWB-2 has been launched before! Are you sure you want to launch it again?";
+            };
+            trigger3Button.clicked += () =>
+            {
+                HidePopupWindow();
+                SetActiveTriggerButton(trigger3Button);
+                lastClickedButton = trigger3Button;
+                popupWindow.text.text = "UWB-3 has been launched before! Are you sure you want to launch it again?";
+            };
+            trigger4Button.clicked += () =>
+            {
+               HidePopupWindow();
+                SetActiveTriggerButton(trigger4Button); 
+                lastClickedButton = trigger4Button;
+                popupWindow.text.text = "UWB-4 has been launched before! Are you sure you want to launch it again?";
+            };
 
             launchButton.clicked += () => { LaunchActiveUWB(); };
             launchButton.SetEnabled(false); //Cannot be clicked at beginning, need to select UWB Sensor first
             
             // For UWB
-            startScanButton.clicked += () => { StartScan(); };
+            startScanButton.clicked += () => { StartScan(); StartGeoSama?.Invoke();};
+            
+            rotate45Button.clicked += () => { SetStearingInformation(turnCCWButton);
+                Robot.Instance.tempAngle = Robot.Instance.Angle;
+                Robot.Instance.Angle = 45;
+                OnManualSteering?.Invoke();
+            };
+            
+            rotate90Button.clicked += () => { SetStearingInformation(turnCCWButton);
+                Robot.Instance.tempAngle = Robot.Instance.Angle;
+                Robot.Instance.Angle = 90;
+                OnManualSteering?.Invoke();
+            };
+
+            calibrateButton.clicked += () =>
+            {
+                ShowPopupWindow();
+                popupWindow.text.text = "Robot will drive 2 meters forward!\n Please Start Recording on the Laptop.";
+                lastClickedButton = calibrateButton;
+            };
             
             // For Riegl
             startRieglScanButton.clicked += () => { StartRieglScan(); };
 
-            popupWindow.confirmed += () => { EnableLaunch(); };
-            popupWindow.canceled += () => { DisableLaunch(); };
+            popupWindow.confirmed += () =>
+            {
+                // If button clicked is "Trigger1 or 2 or 3 or 4"
+                if (lastClickedButton == calibrateButton)
+                {
+                    Debug.Log("Calibrate Process started");
+                    HidePopupWindow();
+                    StartUwbCalibration?.Invoke();
+                }
+                else if (lastClickedButton == closeButton)
+                {
+                    HidePopupWindow();
+                    Application.Quit();
+                }
+                else
+                {
+                    EnableLaunch();
+                    Debug.Log("Launch enabled");
+                }
+            };
+            popupWindow.canceled += () =>
+            {
+                if (lastClickedButton != calibrateButton) DisableLaunch();
+                else HidePopupWindow();
+            };
 
             stopButton.clicked += () =>
             {
@@ -311,6 +435,7 @@ namespace myUIController
             {
                 SetOperationMode(Robot.OperationMode.manualDrive);
                 ChangeStartDrivingButton(false);
+                SetActiveButtonCSS(null, new Button[] {forwardButton,backwardButton,turnCWButton,turnCCWButton});
             };
             missionModeUWBButton.clicked += () => { SetOperationMode(Robot.OperationMode.uwbMission); };
             missionModeGeoSAMAButton.clicked += () => { SetOperationMode(Robot.OperationMode.geoSamaMission); };
@@ -327,8 +452,85 @@ namespace myUIController
             StartCoroutine(InitializeAfterLayout());
             //At the beginning, the decrement button should be inactive because the distance is 0 and the angle is 0 
             UpdateButtonStates();
+            connectionController.rosConnection.ShowHud = !connectionController.rosConnection.ShowHud;
+            connectionController.rosConnection.HUDPanel.gameObject.SetActive(connectionController.rosConnection.ShowHud);
         }
         
+        public void RenderRealsenseCamera(CompressedImageMsg msg)
+        {
+            Texture2D tex2D = msg.ToTexture2D();
+
+            // Create a new texture for the rotated image
+            Texture2D rotatedTex = new Texture2D(tex2D.height, tex2D.width, tex2D.format, false);
+
+            // Copy the pixels from the original texture to the rotated texture
+            for (int i = 0; i < tex2D.width; i++)
+            {
+                for (int j = 0; j < tex2D.height; j++)
+                {
+                    rotatedTex.SetPixel(j, tex2D.width - 1 - i, tex2D.GetPixel(i, j));
+                }
+            }
+
+            // Apply the changes to the rotated texture
+            rotatedTex.Apply();
+
+            RenderTexture renderTex = RenderTexture.GetTemporary(
+                rotatedTex.width,
+                rotatedTex.height,
+                0,
+                RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.Linear);
+
+            Graphics.Blit(rotatedTex, renderTex);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = renderTex;
+
+            imageTextureRealsense.Release();
+            Graphics.Blit(rotatedTex, imageTextureRealsense);
+
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(renderTex);
+
+            // Destroy the textures after use
+            Destroy(tex2D);
+            Destroy(rotatedTex);
+        }
+        
+        public void RenderGeoSamaCamera(CompressedImageMsg msg)
+        {
+            Texture2D tex2D = msg.ToTexture2D();
+            RenderTexture renderTex = RenderTexture.GetTemporary(
+                tex2D.width,
+                tex2D.height,
+                0,
+                RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.Linear);
+
+            Graphics.Blit(tex2D, renderTex);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = renderTex;
+
+            imageTextureGeoSAMA.Release();
+            Graphics.Blit(tex2D, imageTextureGeoSAMA);
+
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(renderTex);
+            
+            Destroy(tex2D);
+        }
+
+        private void ShowPopupWindow()
+        {
+            popupWindow.style.display = DisplayStyle.Flex;
+        }
+
+        private void HidePopupWindow()
+        {
+            popupWindow.style.display = DisplayStyle.None;
+        }
+
+
         private void StartRieglScan()
         {
             if (Robot.Instance._operationMode == Robot.OperationMode.rieglScan)
@@ -369,17 +571,28 @@ namespace myUIController
          */
         public void ResetUI()
         {
+            StartCoroutine(ResetUICoroutine());
+        }
+
+        private IEnumerator ResetUICoroutine()
+        {
+            yield return new WaitForSeconds(0.5f);
+            
             if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
             {
                 missionModeUWBButton.style.display = DisplayStyle.None;
                 missionModeGeoSAMAButton.style.display = DisplayStyle.None;
                 scanModeButton.style.display = DisplayStyle.Flex;
+                cameraWindowCharlie.style.display = DisplayStyle.None;
+                cameraWindowLars.style.display = DisplayStyle.Flex;
             }
             else
             {
                 missionModeUWBButton.style.display = DisplayStyle.Flex;
                 missionModeGeoSAMAButton.style.display = DisplayStyle.Flex;
                 scanModeButton.style.display = DisplayStyle.None;
+                cameraWindowCharlie.style.display = DisplayStyle.Flex;
+                cameraWindowLars.style.display = DisplayStyle.None;
             }
             marker.transform.position = new Vector3(Robot.Instance.Robot3DModel.transform.position.x, 0f, Robot.Instance.Robot3DModel.transform.position.z);
             //Reset the Operation Mode and show the auto drive panel
@@ -437,6 +650,8 @@ namespace myUIController
                 secondView.resolvedStyle.height);
             // Unsubscribe when the application is closed
             connectionController.OnConnectionStatusChanged -= HandleConnectionStatusChanged;
+            imageTextureRealsense.Release();
+            imageTextureGeoSAMA.Release();
         }
 
         /*
@@ -464,23 +679,8 @@ namespace myUIController
         {
             Robot.ACTIVEROBOT selectedRobot = (Robot.ACTIVEROBOT)newValue;
             Robot.Instance.ActiveRobot = selectedRobot;
-            try
-            {
-                connectionController.ChangeRobotIP();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e);
-            }
+            connectionController.ChangeRobotIP();
             // The Offset of the second camera is different for Charlie and Lars, because Charlies camera is rotated 90 deg 
-            if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
-            {
-                cameraController.secondCamOffset = new Vector3(-1f, 1.29f, 0);
-            }
-            else
-            {
-                cameraController.secondCamOffset = new Vector3(0, 1.29f, -1f);
-            }
             ResetUI();
         }
 
@@ -599,6 +799,43 @@ namespace myUIController
             distance -= 0.5f; // Subtract the radius of the robot
             Debug.Log("Distance: " + distance + " m");
             UpdateDistanceLabel(distance);
+            UpdateArrivalLabel(distance);
+        }
+        
+        private void UpdateArrivalLabel(float distance)
+        {
+            // The distance only in 2 decimal places
+            distance = (float)Math.Round(distance, 2);
+            string distanceString = distance.ToString();
+            // Add " m" to the distance string
+            distanceString += " m";
+            arrivalLabel.text = distanceString;
+        }
+        
+        void Update()
+        {
+            UpdateArrivalDistance();
+        }
+
+        private void UpdateArrivalDistance()
+        {
+            // Calculate the distance between the robot and the marker
+            float distance = Vector3.Distance(Robot.Instance.Robot3DModel.transform.position, marker.transform.position) - 0.5f;
+
+            // Consider the robot to have arrived if the distance is less than 0.1 units
+            if (distance < 0.1f)
+            {
+                arrivalLabel.text = "0 m";
+            }
+            else
+            {
+                // The distance only in 2 decimal places
+                distance = (float)Math.Round(distance, 2);
+                string distanceString = distance.ToString();
+                // Add " m" to the distance string
+                distanceString += " m";
+                arrivalLabel.text = distanceString;
+            }
         }
 
         private void UpdateDistanceLabel(float distance)
@@ -671,6 +908,8 @@ namespace myUIController
                 button.style.backgroundColor = originalColor;
                 yield return new WaitForSeconds(duration / 2);
             }
+
+            button.style.backgroundColor = Color.red;
         }
 
         /*
@@ -716,12 +955,13 @@ namespace myUIController
             if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive)
             {
                 Robot.Instance.IncrementDistance(distanceStepSize);
-                UpdateDurationLabelInView(false);
+                UpdateUnitValueLabel(false);
             }
             else
             {
                 Robot.Instance.IncrementAngle(turnStepSize);
-                UpdateDurationLabelInView(true);
+                Robot.Instance.tempAngle = Robot.Instance.Angle;
+                UpdateUnitValueLabel(true);
             }
 
             UpdateButtonStates();
@@ -738,14 +978,15 @@ namespace myUIController
                 if (Robot.Instance.Distance <= 0) decrementButton.SetEnabled(false);
                 else decrementButton.SetEnabled(true);
                 Robot.Instance.DecrementDistance(distanceStepSize);
-                UpdateDurationLabelInView(false);
+                UpdateUnitValueLabel(false);
             }
             else
             {
                 if (Robot.Instance.Angle <= 0) decrementButton.SetEnabled(false);
                 else decrementButton.SetEnabled(true);
                 Robot.Instance.DecrementAngle(turnStepSize);
-                UpdateDurationLabelInView(true);
+                Robot.Instance.tempAngle = Robot.Instance.Angle;
+                UpdateUnitValueLabel(true);
             }
 
             UpdateButtonStates();
@@ -780,12 +1021,12 @@ namespace myUIController
             if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive)
             {
                 Robot.Instance.Distance = 0;
-                UpdateDurationLabelInView(false);
+                UpdateUnitValueLabel(false);
             }
             else
             {
                 Robot.Instance.Angle = 0;
-                UpdateDurationLabelInView(true);
+                UpdateUnitValueLabel(true);
             }
             UpdateButtonStates();
         }
@@ -794,7 +1035,7 @@ namespace myUIController
         /*
          * Update the duration label in the UI with the duration of the robot model
          */
-        private void UpdateDurationLabelInView(bool angle)
+        private void UpdateUnitValueLabel(bool angle)
         {
             valueLabel.text = angle ? Robot.Instance.Angle.ToString() : Robot.Instance.Distance.ToString();
         }
@@ -937,7 +1178,7 @@ namespace myUIController
                 {
                     //launchButton.text = "UWB already launched, try again?";
                     //launchButton.style.backgroundColor = new StyleColor(Color.yellow);
-                    popupWindow.style.display = DisplayStyle.Flex;
+                    ShowPopupWindow();
                     launchButton.SetEnabled(false);
                 }
                 else
@@ -983,6 +1224,7 @@ namespace myUIController
             //activeTriggerButton.SetEnabled(false);
             Debug.Log("Launching: " + Charlie.Instance.UwbTrigger);
             launchButton.SetEnabled(false);
+            LaunchUWB?.Invoke();
         }
 
         /*
@@ -1000,7 +1242,7 @@ namespace myUIController
         private void EnableLaunch()
         {
             launchButton.SetEnabled(true);
-            popupWindow.style.display = DisplayStyle.None;
+            HidePopupWindow();
         }
 
         /*
@@ -1009,7 +1251,7 @@ namespace myUIController
         private void DisableLaunch()
         {
             launchButton.SetEnabled(false);
-            popupWindow.style.display = DisplayStyle.None;
+            HidePopupWindow();
         }
 
         /*

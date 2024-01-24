@@ -7,6 +7,7 @@ using Unity.Robotics.ROSTCPConnector;
 using RosMessageTypes.Geometry;
 using UnityEngine.Serialization;
 using RosMessageTypes.ROSMobile;
+using RosMessageTypes.Sensor;
 using RosMessageTypes.Std;
 
 public class ROSSender : MonoBehaviour
@@ -25,17 +26,25 @@ public class ROSSender : MonoBehaviour
         rosConnection.RegisterPublisher<PoseStampedMsg>(point_TopicName);
         rosConnection.RegisterPublisher<Move_commandMsg>(lars_manualSteerTopicName);
         rosConnection.RegisterPublisher<StringMsg>(charlie_manualSteerTopicName);
-
+        rosConnection.RegisterPublisher<BoolMsg>("/cheese/triggerImage");
+        rosConnection.RegisterPublisher<BoolMsg>("/uwb/startCalib");
+        rosConnection.RegisterPublisher<CompressedImageMsg>("/camera/fisheye1/image_raw/compressed");
+        
         // Wait for GUI to be clicked
         UIController.OnStartDriving += SendPointToDrive;
         UIController.OnManualSteering += SendManualStearingCommand;
         UIController.RieglScanStarting += SendRieglScanStartingCommand;
+        UIController.LaunchUWB += OnLaunchUWBEvent;
+        UIController.StartGeoSama += SendGeosamaScanCommand;
+        UIController.StartUwbCalibration += SendUwbCalibration;
         
         // Register ROS Service
         rosConnection.RegisterRosService<EmptyRequest, EmptyResponse>("/setSingle");
         rosConnection.RegisterRosService<EmptyRequest, EmptyResponse>("/startMeasuring");
         
-        rosConnection.RegisterRosService<Int32Msg,EmptyResponse>("/WD/lights_out");
+        rosConnection.RegisterRosService<Int32Msg, EmptyResponse>("/WD/lights_out");
+        rosConnection.RegisterRosService<TriggerRequest, TriggerResponse>("/trigger_SDS_servo_1");
+        rosConnection.RegisterRosService<TriggerRequest, TriggerResponse>("/trigger_SDS_servo_2");
     }
     
     /*
@@ -85,7 +94,30 @@ public class ROSSender : MonoBehaviour
         {
             SendSteerInfoToCharlie();
         }
+        Robot.Instance.Angle = Robot.Instance.tempAngle;
     }
+
+    public async void LaunchUWB(Charlie.UWBTRIGGER uwbtrigger)
+    {
+        if (uwbtrigger == Charlie.UWBTRIGGER.trigger1 || uwbtrigger == Charlie.UWBTRIGGER.trigger3)
+        {
+            await rosConnection.SendServiceMessage<TriggerResponse>("/trigger_SDS_servo_1",new TriggerRequest());
+        } else if (uwbtrigger == Charlie.UWBTRIGGER.trigger2 || uwbtrigger == Charlie.UWBTRIGGER.trigger4)
+        {
+            await rosConnection.SendServiceMessage<TriggerResponse>("/trigger_SDS_servo_2", new TriggerRequest());
+        }
+    }
+    
+    private void OnLaunchUWBEvent()
+    {
+        LaunchUWB(Charlie.Instance.UwbTrigger);
+    }
+
+    private void SendUwbCalibration()
+    {
+        rosConnection.Publish("/uwb/startCalib", new BoolMsg(true));
+    }
+
 
     private async void SendRieglScanStartingCommand()
     {
@@ -170,6 +202,7 @@ public class ROSSender : MonoBehaviour
 
     private void SendGeosamaScanCommand()
     {
-        rosConnection.Publish("/startGeosamaScan", new BoolMsg(true));
+        Debug.Log("Scanned");
+        rosConnection.Publish("/cheese/triggerImage", new BoolMsg(true));
     }
 }

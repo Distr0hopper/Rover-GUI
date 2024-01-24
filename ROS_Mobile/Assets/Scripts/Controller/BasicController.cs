@@ -1,10 +1,16 @@
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 using Model;
 using myUIController;
 using RosMessageTypes.Geometry;
 using RosMessageTypes.Nav;
+using RosMessageTypes.Sensor;
 using Unity.Robotics.ROSTCPConnector;
+using Unity.Robotics.ROSTCPConnector.MessageGeneration;
+using Unity.Robotics.Visualizations;
 using UnityEngine.UIElements;
+using UnityEngine.Windows;
+using Input = UnityEngine.Input;
 
 public class BasicController : MonoBehaviour
 {
@@ -12,16 +18,16 @@ public class BasicController : MonoBehaviour
     
     [SerializeField] private UIDocument UIDocument;
     [SerializeField] public GameObject robot3DModel;
-    
+   
     #endregion
 
     #region Private Fields
     
-
-    private Robot robot;
     private ROSConnection rosConnection {get; set;}
     private QuaternionMsg qMessage = new QuaternionMsg();
     private QuaternionMsg qMessageCharlie = new QuaternionMsg();
+
+    private UIController uiController;
     //PointMsg pMessage = new PointMsg();
     
     #endregion
@@ -29,7 +35,6 @@ public class BasicController : MonoBehaviour
     
     void Start()
     {
-        robot = Robot.Instance;
         // Subscribe to the current pose of the robot
         rosConnection.Subscribe<OdometryMsg>("cur_pose", msg =>
         {
@@ -50,16 +55,25 @@ public class BasicController : MonoBehaviour
         }
         );
         //rosConnection.Subscribe<OdometryMsg>("pos");
+        rosConnection.Subscribe<CompressedImageMsg>("/camera/fisheye1/image_raw/compressed", msg =>
+        {
+            uiController.RenderRealsenseCamera(msg);
+        });
+        
+        rosConnection.Subscribe<CompressedImageMsg>("/Cam3/camera/image_raw/compressed", msg =>
+        {
+            uiController.RenderGeoSamaCamera(msg);
+        });
     }
+    
 
     private void Awake()
     {
-        robot = new Robot();
         rosConnection = ROSConnection.GetOrCreateInstance();
         // Getting all controllers 
         var rosSender = FindObjectOfType<ROSSender>();
         var cameraController = FindObjectOfType<CameraController>();
-        var uiController = FindObjectOfType<UIController>();
+        uiController = FindObjectOfType<UIController>();
         var connectionController = FindObjectOfType<ConnectionController>();
         
         rosSender.rosConnection = rosConnection;

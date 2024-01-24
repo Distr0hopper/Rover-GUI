@@ -338,6 +338,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
 
     public void DestroyDrawing()
     {
+        if (drawing == null) return;
         Destroy(drawing.gameObject);
         Destroy(drawing);
         pointCloudList.Clear();
@@ -349,6 +350,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
     }
     private void DestroyCurrentPointCloud(MyPointCloudDrawing current)
     {
+        if(drawing == null) return;
         //Destroy game Object
         Destroy(current.pointCloudDrawing.gameObject);
         //Clear Mesh Filter

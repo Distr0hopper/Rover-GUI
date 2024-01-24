@@ -52,6 +52,8 @@ namespace Model
             Lars = 1
         }
 
+        public float tempAngle;
+
         public ACTIVEROBOT ActiveRobot { get; set; } = ACTIVEROBOT.Charlie;
 
         public enum MANUALMODE

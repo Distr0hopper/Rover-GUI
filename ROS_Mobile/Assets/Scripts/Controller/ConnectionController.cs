@@ -14,8 +14,8 @@ public class ConnectionController : MonoBehaviour
     private string lars_ip = "192.168.0.52";
 
     [SerializeField] private PointCloud2CustomVisualizerSettings pointClouds;
-    [SerializeField] private LaserScanVisualizerSettings laserScan;
-    public ROSConnection rosConnection { private get; set; }
+    [SerializeField] private LaserScanCustomVisualizerSettings laserScan;
+    public ROSConnection rosConnection { get; set; }
     
     private bool _hasConnection;
     private float connectionCheckDelay = 1.0f; // Delay in seconds
@@ -72,17 +72,17 @@ public class ConnectionController : MonoBehaviour
         switch (Robot.Instance.ActiveRobot)
         {
             case Robot.ACTIVEROBOT.Charlie:
-                pointClouds.ClearPointcloudList(); //Clear the list, since if the robot switch was too fast, the list may not would be empty 
-                //laserScan.DestroyDrawing();
                 rosConnection.Disconnect();
                 SetCharlieIP();
                 rosConnection.Connect();
+                laserScan.DestroyDrawing();
+                pointClouds.ClearPointcloudList(); //Clear the list, since if the robot switch was too fast, the list may notq be empty 
                 break;
             case Robot.ACTIVEROBOT.Lars:
-                pointClouds.DestroyDrawing();
                 rosConnection.Disconnect();
                 SetLarsIP();
                 rosConnection.Connect();
+                pointClouds.DestroyDrawing();
                 break;
         }
     }

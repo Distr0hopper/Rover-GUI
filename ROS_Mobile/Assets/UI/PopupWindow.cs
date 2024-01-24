@@ -18,6 +18,8 @@ public class PopupWindow : VisualElement
     private const string ussPopupButton = "popup_button";
     private const string ussConfirmButton = "button_confirm";
     private const string ussCancelButton = "button_cancel";
+
+    public Label text; 
     public PopupWindow()
     {
         AddToClassList(ussPopupWindowContainer);
@@ -31,7 +33,7 @@ public class PopupWindow : VisualElement
         window.Add(horizontalLayoutText);
         
         Label warning = new Label("WARNING");
-        Label text = new Label("UWB has been launched before! Are you sure you want to launch it again?");
+        text = new Label("UWB has been launched before! Are you sure you want to launch it again?");
         
         warning.AddToClassList(ussWarningMsg);
         text.AddToClassList(ussPopupText);

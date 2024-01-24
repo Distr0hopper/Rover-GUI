@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using myUIController;
 using UnityEngine;
@@ -44,7 +45,7 @@ public class CameraController : MonoBehaviour
     #region Serialized Fields
 
     [SerializeField] private Vector3 mainCamOffset;
-    [SerializeField] public Vector3 secondCamOffset;
+    [FormerlySerializedAs("secondCamOffset")] [SerializeField] public Vector3 secondCamRelativToRobotOffset;
 
     #endregion
 
@@ -147,10 +148,22 @@ public class CameraController : MonoBehaviour
      */
     private void UpdateCameraPosition()
     {
+        if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
+        {
+            
+        }
+        else
+        {
+            float angle = Robot.Instance.Robot3DModel.transform.rotation.eulerAngles.y;
+            secondCamRelativToRobotOffset.x = - Mathf.Sin(angle * Mathf.Deg2Rad);
+            secondCamRelativToRobotOffset.z = -Mathf.Cos(angle * Mathf.Deg2Rad);
+        }
+
+        secondCamRelativToRobotOffset.y = 1.29f;
         Vector3 robotPosition = Robot.Instance.Robot3DModel.transform.position;
         //Update position of the main camera and the second camera to the robot model
         mainCamera.transform.position = robotPosition + mainCamOffset;
-        secondCamera.transform.position = robotPosition + secondCamOffset;
+        secondCamera.transform.position = robotPosition + secondCamRelativToRobotOffset;
     }
 
 
