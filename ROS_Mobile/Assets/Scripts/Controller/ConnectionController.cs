@@ -2,9 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Model;
+using myUIController;
+using RosMessageTypes.Sensor;
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.Visualizations;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class ConnectionController : MonoBehaviour
 {
@@ -15,11 +18,14 @@ public class ConnectionController : MonoBehaviour
 
     [SerializeField] private PointCloud2CustomVisualizerSettings pointClouds;
     [SerializeField] private LaserScanCustomVisualizerSettings laserScan;
+
+    public UIController uiController;
     public ROSConnection rosConnection { get; set; }
     
     private bool _hasConnection;
     private float connectionCheckDelay = 1.0f; // Delay in seconds
     private float lastConnectionCheckTime;
+    
     
     // Define method for connection status changed event
     public delegate void ConnectionStatusChangedHandler(bool isConnected);
@@ -77,12 +83,28 @@ public class ConnectionController : MonoBehaviour
                 rosConnection.Connect();
                 laserScan.DestroyDrawing();
                 pointClouds.ClearPointcloudList(); //Clear the list, since if the robot switch was too fast, the list may notq be empty 
+                /*
+                rosConnection.Unsubscribe("/camera/fisheye2/image_raw/compressed");
+                rosConnection.Subscribe<CompressedImageMsg>("/camera/fisheye1/image_raw/compressed", msg =>
+                {
+                    uiController.RenderRealsenseCamera(msg);
+                });
+                rosConnection.RegisterPublisher<CompressedImageMsg>("/camera/fisheye1/image_raw/compressed");
+                */
                 break;
             case Robot.ACTIVEROBOT.Lars:
                 rosConnection.Disconnect();
                 SetLarsIP();
                 rosConnection.Connect();
                 pointClouds.DestroyDrawing();
+                /*
+                rosConnection.Unsubscribe("/camera/fisheye1/image_raw/compressed");
+                rosConnection.Subscribe<CompressedImageMsg>("/camera/fisheye2/image_raw/compressed", msg =>
+                {
+                    uiController.RenderGeoSamaCamera(msg);
+                });
+                rosConnection.RegisterPublisher<CompressedImageMsg>("/camera/fisheye2/image_raw/compressed");
+                */
                 break;
         }
     }

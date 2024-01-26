@@ -150,7 +150,7 @@ public class CameraController : MonoBehaviour
     {
         if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
         {
-            
+            secondCamRelativToRobotOffset = new Vector3(-1.45f, 0, 0);
         }
         else
         {

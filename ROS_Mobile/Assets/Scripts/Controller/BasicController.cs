@@ -4,6 +4,7 @@ using Model;
 using myUIController;
 using RosMessageTypes.Geometry;
 using RosMessageTypes.Nav;
+using RosMessageTypes.ROSMobile;
 using RosMessageTypes.Sensor;
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.MessageGeneration;
@@ -26,6 +27,10 @@ public class BasicController : MonoBehaviour
     private ROSConnection rosConnection {get; set;}
     private QuaternionMsg qMessage = new QuaternionMsg();
     private QuaternionMsg qMessageCharlie = new QuaternionMsg();
+    private string camFisheye = "/camera/fisheye2/image_raw/compressed";
+    private string camGeosama = "/Cam0/camera/image_raw/compressed";
+    public int errorMessageCount;
+    public string errorMessage;
 
     private UIController uiController;
     //PointMsg pMessage = new PointMsg();
@@ -55,18 +60,26 @@ public class BasicController : MonoBehaviour
         }
         );
         //rosConnection.Subscribe<OdometryMsg>("pos");
-        rosConnection.Subscribe<CompressedImageMsg>("/camera/fisheye1/image_raw/compressed", msg =>
+        
+        //Charlie Camera Stream
+        rosConnection.RegisterPublisher<CompressedImageMsg>(camGeosama);
+        rosConnection.Subscribe<CompressedImageMsg>(camGeosama, msg =>
+        {
+            uiController.RenderGeoSamaCamera(msg);
+        });
+        // Lars Camera Stream
+        rosConnection.RegisterPublisher<CompressedImageMsg>(camFisheye);
+        rosConnection.Subscribe<CompressedImageMsg>(camFisheye, msg =>
         {
             uiController.RenderRealsenseCamera(msg);
         });
         
-        rosConnection.Subscribe<CompressedImageMsg>("/camera/charlie/fisheye1/compressed", msg =>
+        rosConnection.Subscribe<WD_active_failuresMsg>("/WD/active_failures", msg =>
         {
-            uiController.RenderGeoSamaCamera(msg);
+            errorMessageCount = msg.current_error_count;
+            if (errorMessageCount > 0) errorMessage = msg.current_errors[0].error_description;
         });
-        
-        //When the back button of the pen is pressed, log message
-        
+    
     }
     
 
@@ -78,6 +91,7 @@ public class BasicController : MonoBehaviour
         var cameraController = FindObjectOfType<CameraController>();
         uiController = FindObjectOfType<UIController>();
         var connectionController = FindObjectOfType<ConnectionController>();
+        connectionController.uiController = uiController;
         
         rosSender.rosConnection = rosConnection;
 
@@ -97,6 +111,7 @@ public class BasicController : MonoBehaviour
         UpdateRobotPosition();
         UpdateRobotRotation();
         Update3DModelInScene();
+        uiController.UpdateErrorLabel(errorMessageCount,errorMessage);
     }
     
 

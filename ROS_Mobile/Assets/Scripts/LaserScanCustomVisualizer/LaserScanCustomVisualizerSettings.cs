@@ -14,7 +14,7 @@ public class LaserScanCustomVisualizerSettings : VisualizerSettingsGeneric<Laser
     bool m_UseIntensitySize;
     public bool UseIntensitySize { get => m_UseIntensitySize; set => m_UseIntensitySize = value; }
     [HideInInspector, SerializeField]
-    float m_PointRadius = 0.05f;
+    float m_PointRadius = 0.007f;
     public float PointRadius { get => m_PointRadius; set => m_PointRadius = value; }
     [HideInInspector, SerializeField]
     float m_MaxIntensity = 100.0f;
@@ -61,7 +61,7 @@ public class LaserScanCustomVisualizerSettings : VisualizerSettingsGeneric<Laser
                     break;
             }
 
-            float radius = m_PointRadius;
+            float radius = 0.007f;
             if (m_UseIntensitySize && message.intensities.Length > 0)
             {
                 radius = Mathf.InverseLerp(0, m_MaxIntensity, message.intensities[i]);

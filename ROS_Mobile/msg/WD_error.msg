@@ -1,0 +1,3 @@
+uint8 error_id
+uint8 severity_level
+string error_description

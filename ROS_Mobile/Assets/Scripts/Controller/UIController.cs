@@ -20,6 +20,8 @@ namespace myUIController
         // Bottom Panel
         private Button closeButton;
         private Button debugButton;
+        private Label errorLabel;
+        private VisualElement errorMessagePanel;
 
         private VisualElement mainView; //View which shows RenderTexture from Camera 
         private VisualElement secondView; //View which shows Top-Down view of the map
@@ -153,6 +155,8 @@ namespace myUIController
             // Bot Panel
             closeButton = root.Q<Button>("CloseButton");
             debugButton = root.Q<Button>("DebugButton");
+            errorLabel = root.Q<Label>("ErrorLabel");
+            errorMessagePanel = root.Q<VisualElement>("ErrorMessagePanel");
             
             mainView = root.Q<VisualElement>("MainView");
             secondView = root.Q<VisualElement>("secondView");
@@ -300,13 +304,15 @@ namespace myUIController
             // For UWB
             startScanButton.clicked += () => { StartScan(); StartGeoSama?.Invoke();};
             
-            rotate45Button.clicked += () => { SetStearingInformation(turnCCWButton);
+            rotate45Button.clicked += () => { 
+                SetStearingInformation(turnCCWButton);
                 Robot.Instance.tempAngle = Robot.Instance.Angle;
                 Robot.Instance.Angle = 45;
                 OnManualSteering?.Invoke();
             };
             
-            rotate90Button.clicked += () => { SetStearingInformation(turnCCWButton);
+            rotate90Button.clicked += () => { 
+                SetStearingInformation(turnCCWButton);
                 Robot.Instance.tempAngle = Robot.Instance.Angle;
                 Robot.Instance.Angle = 90;
                 OnManualSteering?.Invoke();
@@ -459,54 +465,55 @@ namespace myUIController
 
             //connectionController.rosConnection.HUDPanel.gameObject.SetActive(showHud);
         }
-        
 
+        public void UpdateErrorLabel(int errorCount, string errorMessage)
+        {
+            if (errorCount > 0)
+            {
+                errorMessagePanel.style.backgroundColor = Color.red;
+                if (errorMessage.Contains("Camera"))
+                {
+                    errorLabel.text = "Error: Camera";
+                } else if (errorMessage.Contains("Laser"))
+                {
+                    errorLabel.text = "Error: Laser";
+                }
+            }
+            else
+            {
+                errorMessagePanel.style.backgroundColor = greenButtonColor;
+                errorLabel.text = "No Errors";
+            }
+        }
         
         public void RenderRealsenseCamera(CompressedImageMsg msg)
         {
             Texture2D tex2D = msg.ToTexture2D();
-
-            // Create a new texture for the rotated image
-            Texture2D rotatedTex = new Texture2D(tex2D.height, tex2D.width, tex2D.format, false);
-
-            // Copy the pixels from the original texture to the rotated texture
-            for (int i = 0; i < tex2D.width; i++)
-            {
-                for (int j = 0; j < tex2D.height; j++)
-                {
-                    rotatedTex.SetPixel(j, tex2D.width - 1 - i, tex2D.GetPixel(i, j));
-                }
-            }
-
-            // Apply the changes to the rotated texture
-            rotatedTex.Apply();
-
+            //tex2D = rotateTexture(tex2D, true);
             RenderTexture renderTex = RenderTexture.GetTemporary(
-                rotatedTex.width,
-                rotatedTex.height,
+                tex2D.width,
+                tex2D.height,
                 0,
                 RenderTextureFormat.ARGB32,
                 RenderTextureReadWrite.Linear);
 
-            Graphics.Blit(rotatedTex, renderTex);
+            Graphics.Blit(tex2D, renderTex);
             RenderTexture previous = RenderTexture.active;
             RenderTexture.active = renderTex;
 
             imageTextureRealsense.Release();
-            Graphics.Blit(rotatedTex, imageTextureRealsense);
+            Graphics.Blit(tex2D, imageTextureRealsense);
 
             RenderTexture.active = previous;
             RenderTexture.ReleaseTemporary(renderTex);
-
-            // Destroy the textures after use
+            
             Destroy(tex2D);
-            Destroy(rotatedTex);
         }
         
         public void RenderGeoSamaCamera(CompressedImageMsg msg)
         {
             Texture2D tex2D = msg.ToTexture2D();
-            //tex2D = rotateTexture(tex2D, true);
+            tex2D = rotateTexture(tex2D, true);
             RenderTexture renderTex = RenderTexture.GetTemporary(
                 tex2D.width,
                 tex2D.height,
@@ -616,16 +623,17 @@ namespace myUIController
                 missionModeGeoSAMAButton.style.display = DisplayStyle.None;
                 scanModeButton.style.display = DisplayStyle.Flex;
                 cameraWindowCharlie.style.display = DisplayStyle.None;
-                cameraWindowLars.style.display = DisplayStyle.Flex;
+                cameraWindowLars.style.display = DisplayStyle.None;
             }
             else
             {
                 missionModeUWBButton.style.display = DisplayStyle.Flex;
                 missionModeGeoSAMAButton.style.display = DisplayStyle.Flex;
                 scanModeButton.style.display = DisplayStyle.None;
-                cameraWindowCharlie.style.display = DisplayStyle.Flex;
+                cameraWindowCharlie.style.display = DisplayStyle.None;
                 cameraWindowLars.style.display = DisplayStyle.None;
             }
+            hideCamera.text = "Show Camera";
             marker.transform.position = new Vector3(Robot.Instance.Robot3DModel.transform.position.x, 0f, Robot.Instance.Robot3DModel.transform.position.z);
             //Reset the Operation Mode and show the auto drive panel
             Robot.Instance._operationMode = Robot.OperationMode.autoDrive;

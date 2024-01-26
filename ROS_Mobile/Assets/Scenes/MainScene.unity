@@ -864,7 +864,7 @@ MonoBehaviour:
   secondCamera: {fileID: 1893805838}
   manualRotation: {x: 0, y: 0, z: 0, w: 0}
   manualRotationCharlie: {x: 0, y: 0, z: 0, w: 0}
-  rotationSpeed: 2.75
+  rotationSpeed: 1.75
   mainCamOffset: {x: 0, y: 1.4, z: 0}
   secondCamRelativToRobotOffset: {x: -1, y: 1.29, z: 0}
 --- !u!114 &713207224
@@ -902,6 +902,7 @@ MonoBehaviour:
   lars_ip: 192.168.0.52
   pointClouds: {fileID: 11400000, guid: 43d86d6349e5b5bada52154f73499eeb, type: 2}
   laserScan: {fileID: 11400000, guid: 20d1ece4618d47a89a3ddd4348dbf91e, type: 2}
+  uiController: {fileID: 713207224}
 --- !u!1 &738457002
 GameObject:
   m_ObjectHideFlags: 0

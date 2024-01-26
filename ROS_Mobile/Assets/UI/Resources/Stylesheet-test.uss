@@ -58,8 +58,8 @@
 }
 
 #unity-progress-bar {
-    height: 50px;
-    min-height: 50px;
+    height: 100%;
+    min-height: 100px;
 }
 
 .unity-progress-bar__progress {
@@ -94,9 +94,9 @@
 
 .horizontalLayout {
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: center;
     flex-wrap: wrap;
-    align-items: flex-end;
+    align-items: auto;
     align-self: center;
     flex-shrink: 0;
     white-space: normal;
@@ -119,13 +119,15 @@
 .popup_button {
     height: 90px;
     width: 205px;
-    margin-top: 140px;
+    margin-top: 420px;
     margin-left: 50px;
     margin-right: 50px;
     border-top-color: rgb(0, 0, 0);
     border-left-color: rgb(0, 0, 0);
     border-right-color: rgb(0, 0, 0);
     border-bottom-color: rgb(0, 0, 0);
+    justify-content: flex-start;
+    align-items: auto;
 }
 
 .button_cancel {

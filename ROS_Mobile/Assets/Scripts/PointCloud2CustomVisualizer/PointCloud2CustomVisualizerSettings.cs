@@ -184,6 +184,7 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
 
     public override void Draw(Drawing3d drawing, PointCloud2Msg message, MessageMetadata meta)
     {
+        if (Robot.Instance.ActiveRobot != Robot.ACTIVEROBOT.Charlie) return;
         this.drawing = drawing;
         float currentTime = Time.time;
 

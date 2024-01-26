@@ -1,3 +1,4 @@
+using System.Collections;
 using Utils;
 using Model;
 using myUIController;
@@ -28,8 +29,7 @@ public class ROSSender : MonoBehaviour
         rosConnection.RegisterPublisher<StringMsg>(charlie_manualSteerTopicName);
         rosConnection.RegisterPublisher<BoolMsg>("/cheese/triggerImage");
         rosConnection.RegisterPublisher<BoolMsg>("/uwb/startCalib");
-        rosConnection.RegisterPublisher<CompressedImageMsg>("/camera/fisheye1/image_raw/compressed");
-        rosConnection.RegisterPublisher<CompressedImageMsg>("/camera/charlie/fisheye1/compressed");
+        rosConnection.RegisterPublisher<WD_active_failuresMsg>("/WD/active_failures");
         
         // Wait for GUI to be clicked
         UIController.OnStartDriving += SendPointToDrive;
@@ -43,7 +43,7 @@ public class ROSSender : MonoBehaviour
         rosConnection.RegisterRosService<EmptyRequest, EmptyResponse>("/setSingle");
         rosConnection.RegisterRosService<EmptyRequest, EmptyResponse>("/startMeasuring");
         
-        rosConnection.RegisterRosService<Int32Msg, EmptyResponse>("/WD/lights_out");
+        //rosConnection.RegisterRosService<Int32Msg, EmptyResponse>("/WD/lights_out");
         rosConnection.RegisterRosService<TriggerRequest, TriggerResponse>("/trigger_SDS_servo_1");
         rosConnection.RegisterRosService<TriggerRequest, TriggerResponse>("/trigger_SDS_servo_2");
     }
@@ -126,13 +126,18 @@ public class ROSSender : MonoBehaviour
         await rosConnection.SendServiceMessage<EmptyResponse>("/setSingle",new EmptyRequest());
         await rosConnection.SendServiceMessage<EmptyResponse>("/startMeasuring",new EmptyRequest());
     }
-    
+
+    private IEnumerator waitForSeconds(int time)
+    {
+        yield return new WaitForSeconds(time);
+    }
     private async void SendWatchdogCommand()
     {
         // Wait for 1 second
+        StartCoroutine(waitForSeconds(1));
         
         // Make a service call to start the Riegl scan
-        await rosConnection.SendServiceMessage<EmptyResponse>("/WD/lights_out",new Int32Msg(100));
+        await rosConnection.SendServiceMessage<EmptyResponse>("/WD/lights_out",new UInt32Msg(100));
     }
 
     private void SendSteerInfoToCharlie()
