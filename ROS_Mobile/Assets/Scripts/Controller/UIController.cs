@@ -129,6 +129,7 @@ namespace myUIController
         private Color disabledButtonColor = new Color(0.26f, 0.26f, 0.26f, 1f);
         private Color unselectedButtonColor = new Color(0.73f, 0.73f, 0.73f);
         float distance = 0;
+        public bool stopButtonClicked = false; 
 
         #endregion
 
@@ -321,7 +322,7 @@ namespace myUIController
             calibrateButton.clicked += () =>
             {
                 ShowPopupWindow();
-                popupWindow.text.text = "Robot will drive 2 meters forward!\n Please Start Recording on the Laptop.";
+                popupWindow.text.text = "Robot will drive 2 meters forward! Please Start Recording on the Laptop.";
                 lastClickedButton = calibrateButton;
             };
             
@@ -356,12 +357,7 @@ namespace myUIController
 
             stopButton.clicked += () =>
             {
-                SetStearingInformation(stopButton);
-                ManualSteeringButtonClicked();
-                FlashStopButton();
-                ChangeMarkerColor(false);
-                ChangeStartDrivingButton(false);
-                SetActiveButtonCSS(null, new Button[] {forwardButton, backwardButton, turnCWButton, turnCCWButton});
+                ExecuteStopButtonCommand();
             };
 
             driveMode.clicked += () =>
@@ -464,6 +460,17 @@ namespace myUIController
             cameraWindowLars.style.display = DisplayStyle.None;
 
             //connectionController.rosConnection.HUDPanel.gameObject.SetActive(showHud);
+        }
+
+        private void ExecuteStopButtonCommand()
+        {
+            if (stopButtonClicked) return;
+            SetStearingInformation(stopButton);
+            ManualSteeringButtonClicked();
+            FlashStopButton();
+            ChangeMarkerColor(false);
+            ChangeStartDrivingButton(false);
+            SetActiveButtonCSS(null, new Button[] {forwardButton, backwardButton, turnCWButton, turnCCWButton});
         }
 
         public void UpdateErrorLabel(int errorCount, string errorMessage)
@@ -812,8 +819,10 @@ namespace myUIController
                 marker.transform.LookAt(cameraController.secondCamera.transform, Vector3.down); //rotate towards the camera
                 // Set the world coordinates in the robot model
                 Robot.Instance.SetGoalInWorldPos(worldPosition);
+                Debug.Log("Clicked Point: " + worldPosition);
             }
             
+            /*
             if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
             {
                 float tempx = worldPosition.x - Charlie.Instance.CurrentPos.x;
@@ -823,7 +832,7 @@ namespace myUIController
                 worldPosition.z = Charlie.Instance.CurrentPos.z + Mathf.Sin((float) Charlie.Instance.theta * Mathf.Deg2Rad) * tempx + Mathf.Cos((float) Charlie.Instance.theta * Mathf.Deg2Rad) * tempz;
                 Robot.Instance.SetGoalInWorldPos(worldPosition);
             }
-            Debug.Log(worldPosition);
+            */
             CalculateDistance(worldPosition);
             ChangeStartDrivingButton(true);
             ChangeMarkerColor(false);
@@ -935,6 +944,7 @@ namespace myUIController
          */
         public void FlashStopButton()
         {
+            stopButtonClicked = true;
             StartCoroutine(FlashButtonCoroutine(stopButton, 3, Color.yellow, 0.5f));
         }
 
@@ -956,6 +966,7 @@ namespace myUIController
             }
 
             button.style.backgroundColor = Color.red;
+            stopButtonClicked = false;
         }
 
         /*

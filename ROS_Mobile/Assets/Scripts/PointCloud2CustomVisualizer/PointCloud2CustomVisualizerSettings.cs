@@ -289,6 +289,15 @@ public class PointCloud2CustomVisualizerSettings : VisualizerSettingsGeneric<Poi
             Vector3 unityPoint = rosPoint.toUnity;
             // Transform Point within current TF frame
             unityPoint = currentTFFrame.TransformPoint(unityPoint);
+
+            Vector3 rotatedPoint = new Vector3();
+            rotatedPoint.x = Mathf.Cos((float) (Charlie.Instance.theta * Mathf.Deg2Rad)) * unityPoint.x - Mathf.Sin((float) (Charlie.Instance.theta * Mathf.Deg2Rad)) * unityPoint.z;
+            rotatedPoint.z = Mathf.Sin((float) (Charlie.Instance.theta * Mathf.Deg2Rad)) * unityPoint.x + Mathf.Cos((float) (Charlie.Instance.theta * Mathf.Deg2Rad)) * unityPoint.z;
+            
+            unityPoint.x = rotatedPoint.x;
+            unityPoint.z = rotatedPoint.z;
+            
+            
             // Transform Point with the Robot Position so that it changes position with the robot
             unityPoint.x += Charlie.Instance.CurrentPos.x;
             unityPoint.z += Charlie.Instance.CurrentPos.z;

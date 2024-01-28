@@ -305,7 +305,7 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1588145924}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &38204601
+--- !u!114 &38204604
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -835,6 +835,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UIDocument: {fileID: 1661320148}
   robot3DModel: {fileID: 981576855}
+  errorMessageCount: 0
+  errorMessage: 
 --- !u!114 &713207222
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -886,6 +888,7 @@ MonoBehaviour:
     type: 2}
   imageTextureGeoSAMA: {fileID: 8400000, guid: 6557fdd9db55c148aaada62d935db840, type: 2}
   arrow: {fileID: 764472802}
+  stopButtonClicked: 0
 --- !u!114 &713207225
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2881,7 +2884,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5240387698711624104, guid: 7e8ecfd17cd58c247916864b74797f3f,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 38204601}
+      addedObject: {fileID: 38204604}
   m_SourcePrefab: {fileID: 100100000, guid: 7e8ecfd17cd58c247916864b74797f3f, type: 3}
 --- !u!4 &1588145925 stripped
 Transform:

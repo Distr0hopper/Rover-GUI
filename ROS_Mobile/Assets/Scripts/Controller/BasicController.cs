@@ -40,7 +40,7 @@ public class BasicController : MonoBehaviour
     
     void Start()
     {
-        // Subscribe to the current pose of the robot
+        // Subscribe to the current pose of Lars
         rosConnection.Subscribe<OdometryMsg>("cur_pose", msg =>
         {
             //pMessage = msg.pose.pose.position;
@@ -50,16 +50,16 @@ public class BasicController : MonoBehaviour
             qMessage = msg.pose.pose.orientation;
         });
         
-        rosConnection.Subscribe<OdometryMsg>("/base_controller_node/odom", msg =>
+        // Subscribe to the current pose of Charlie
+        rosConnection.Subscribe<PoseMsg>("/global_pose", msg =>
         {
             //pMessage = msg.pose.pose.position;
-            Charlie.Instance.CurrentX = msg.pose.pose.position.x;
-            Charlie.Instance.CurrentY = msg.pose.pose.position.y;
-            Charlie.Instance.CurrentZ = msg.pose.pose.position.z;
-            qMessageCharlie = msg.pose.pose.orientation;
+            Charlie.Instance.CurrentX = msg.position.x;
+            Charlie.Instance.CurrentY = msg.position.y;
+            Charlie.Instance.CurrentZ = msg.position.z;
+            qMessageCharlie = msg.orientation;
         }
         );
-        //rosConnection.Subscribe<OdometryMsg>("pos");
         
         //Charlie Camera Stream
         rosConnection.RegisterPublisher<CompressedImageMsg>(camGeosama);
@@ -129,10 +129,11 @@ public class BasicController : MonoBehaviour
         else
         { 
             robot3DModel.transform.position = new Vector3(Charlie.Instance.CurrentPos.x, -0.54f, Charlie.Instance.CurrentPos.z); //Make that it is on the ground and not in the air
-            Vector3 angles = new Vector3(0, 90, 0);
-            Quaternion temp = new Quaternion();
-            temp.eulerAngles = angles;
-            robot3DModel.transform.rotation = temp;
+            robot3DModel.transform.rotation = Charlie.Instance.CurrentRot;
+            //Vector3 angles = new Vector3(0, 90, 0);
+            //Quaternion temp = new Quaternion();
+            //temp.eulerAngles = angles;
+            //robot3DModel.transform.rotation = temp;
         }
     }
 
@@ -150,9 +151,16 @@ public class BasicController : MonoBehaviour
         robotAngle.eulerAngles = angles;
         Lars.Instance.CurrentRot = robotAngle;
         
-        
+        //Charlies Rotation
         Quaternion quadCharlie = new Quaternion((float) qMessageCharlie.x, (float) qMessageCharlie.y,(float) qMessageCharlie.z, (float)qMessageCharlie.w);
-       
+        Vector3 anglesCharlie = quadCharlie.eulerAngles;
+        anglesCharlie.x = 0;
+        anglesCharlie.y = - anglesCharlie.z + 90; 
+        anglesCharlie.z = 0;
+        Quaternion robotAngleCharlie = new Quaternion();
+        robotAngleCharlie.eulerAngles = anglesCharlie;
+        Charlie.Instance.CurrentRot = robotAngleCharlie;
+        
         Charlie.Instance.theta = quadCharlie.eulerAngles.z;
         
     }

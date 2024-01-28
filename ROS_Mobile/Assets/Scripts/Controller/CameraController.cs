@@ -148,16 +148,9 @@ public class CameraController : MonoBehaviour
      */
     private void UpdateCameraPosition()
     {
-        if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
-        {
-            secondCamRelativToRobotOffset = new Vector3(-1.45f, 0, 0);
-        }
-        else
-        {
-            float angle = Robot.Instance.Robot3DModel.transform.rotation.eulerAngles.y;
-            secondCamRelativToRobotOffset.x = - Mathf.Sin(angle * Mathf.Deg2Rad);
-            secondCamRelativToRobotOffset.z = -Mathf.Cos(angle * Mathf.Deg2Rad);
-        }
+        float angle = Robot.Instance.Robot3DModel.transform.rotation.eulerAngles.y;
+        secondCamRelativToRobotOffset.x = - Mathf.Sin(angle * Mathf.Deg2Rad);
+        secondCamRelativToRobotOffset.z = -Mathf.Cos(angle * Mathf.Deg2Rad);
 
         secondCamRelativToRobotOffset.y = 1.29f;
         Vector3 robotPosition = Robot.Instance.Robot3DModel.transform.position;
