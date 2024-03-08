@@ -42,4 +42,6 @@ public class Charlie
         
     public Vector3 CurrentPos { get; set; }
     public Quaternion CurrentRot { get; set; }
+
+    public bool UwbCalibDone { get; set; } = false;
 }

@@ -31,6 +31,7 @@ public class ROSSender : MonoBehaviour
         rosConnection.RegisterPublisher<BoolMsg>("/uwb/startCalib");
         rosConnection.RegisterPublisher<WD_active_failuresMsg>("/WD/active_failures");
         
+        
         // Wait for GUI to be clicked
         UIController.OnStartDriving += SendPointToDrive;
         UIController.OnManualSteering += SendManualStearingCommand;

@@ -34,7 +34,7 @@ namespace myUIController
         private VisualElement cameraWindowCharlie;
         private VisualElement cameraWindowLars;
         private PopupWindow popupWindow;
-        
+
         // Connection Panel
         private VisualElement connectionState;
         private Label connectionLabel;
@@ -79,17 +79,18 @@ namespace myUIController
         private Button rotate45Button;
         private Button rotate90Button;
         private Button calibrateButton;
+        private Button confirmedUwbCalibDone;
 
         //GeoSAMA Mode Panel
         private Button startScanButton;
-        
+
         //Drive Labels
         private Label valueLabel;
         private Label unitLabel;
         private Label inputTypeLabel;
         private Label distanceLabel;
         private Label arrivalLabel;
-        
+
         //Riegl Panel
         private Button startRieglScanButton;
         private Label timePasedLabel;
@@ -103,13 +104,16 @@ namespace myUIController
         private Button lastClickedButton;
 
         #endregion
-        
+
         #region Public Properties
 
         [SerializeField] public GameObject marker;
         [SerializeField] public RenderTexture mainViewTexture;
         [SerializeField] public RenderTexture secondViewTexture;
-        [FormerlySerializedAs("imageTexture")] [SerializeField] public RenderTexture imageTextureRealsense;
+
+        [FormerlySerializedAs("imageTexture")] [SerializeField]
+        public RenderTexture imageTextureRealsense;
+
         [SerializeField] public RenderTexture imageTextureGeoSAMA;
         public static bool isMainActive = true;
         [HideInInspector] public UIDocument UIDocument { private get; set; }
@@ -129,7 +133,7 @@ namespace myUIController
         private Color disabledButtonColor = new Color(0.26f, 0.26f, 0.26f, 1f);
         private Color unselectedButtonColor = new Color(0.73f, 0.73f, 0.73f);
         float distance = 0;
-        public bool stopButtonClicked = false; 
+        public bool stopButtonClicked = false;
 
         #endregion
 
@@ -158,7 +162,7 @@ namespace myUIController
             debugButton = root.Q<Button>("DebugButton");
             errorLabel = root.Q<Label>("ErrorLabel");
             errorMessagePanel = root.Q<VisualElement>("ErrorMessagePanel");
-            
+
             mainView = root.Q<VisualElement>("MainView");
             secondView = root.Q<VisualElement>("secondView");
             cameraWindowCharlie = root.Q<VisualElement>("CameraWindowCharlie");
@@ -192,13 +196,13 @@ namespace myUIController
             missionModeGeoSAMAButton = root.Q<Button>("MissionModeGeoSAMA");
             scanModeButton = root.Q<Button>("ScanModeButton");
             changeRobotDropdown = root.Q<EnumField>("RobotChoice");
-            
+
             //Riegl Panel
             startRieglScanButton = root.Q<Button>("StartRieglScanButton");
             scanProgressRiegl = root.Q<ProgressBar>("ScanProgressRiegl");
             timePasedLabel = root.Q<Label>("timePassedLabel");
             rieglCautionPanel = root.Q<VisualElement>("RieglScanCaution");
-            
+
 
             // Panels for the different modes (on the right)
             manualDrivePanel = root.Q<VisualElement>("ManualDrivePanel");
@@ -206,9 +210,9 @@ namespace myUIController
             UWBPanel = root.Q<VisualElement>("UWBPanel");
             GeoSAMAPanel = root.Q<VisualElement>("GeoSAMAPanel");
             driveStopPanel = root.Q<VisualElement>("DriveStopPanel");
-            rieglPanel = root.Q<VisualElement>("RieglPanel"); 
-            
-            
+            rieglPanel = root.Q<VisualElement>("RieglPanel");
+
+
             // Bot Panel
             connectionState = root.Q<VisualElement>("ConnectionState");
             connectionLabel = root.Q<Label>("ConnectionLabel");
@@ -243,7 +247,7 @@ namespace myUIController
                 ShowPopupWindow();
                 lastClickedButton = closeButton;
             };
-            
+
             debugButton.clicked += () =>
             {
                 connectionController.rosConnection.ShowHud = !connectionController.rosConnection.ShowHud;
@@ -254,13 +258,17 @@ namespace myUIController
             {
                 if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
                 {
-                    cameraWindowCharlie.style.display = cameraWindowCharlie.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None; 
+                    cameraWindowCharlie.style.display = cameraWindowCharlie.style.display == DisplayStyle.None
+                        ? DisplayStyle.Flex
+                        : DisplayStyle.None;
                 }
                 else
                 {
-                    cameraWindowLars.style.display = cameraWindowLars.style.display == DisplayStyle.None ? DisplayStyle.Flex : DisplayStyle.None; 
+                    cameraWindowLars.style.display = cameraWindowLars.style.display == DisplayStyle.None
+                        ? DisplayStyle.Flex
+                        : DisplayStyle.None;
                 }
-                
+
                 hideCamera.text = hideCamera.text.Equals("Show Camera") ? "Hide Camera" : "Show Camera";
             };
 
@@ -271,7 +279,8 @@ namespace myUIController
             commandButton.clicked += () => { SendSteeringCommand(); };
             commandButton.SetEnabled(false); //Cannot be clicked at beginning, need to set goal first 
 
-            trigger1Button.clicked += () => { 
+            trigger1Button.clicked += () =>
+            {
                 HidePopupWindow();
                 SetActiveTriggerButton(trigger1Button);
                 popupWindow.text.text = "UWB-1 has been launched before! Are you sure you want to launch it again?";
@@ -280,7 +289,7 @@ namespace myUIController
             trigger2Button.clicked += () =>
             {
                 HidePopupWindow();
-                SetActiveTriggerButton(trigger2Button); 
+                SetActiveTriggerButton(trigger2Button);
                 lastClickedButton = trigger2Button;
                 popupWindow.text.text = "UWB-2 has been launched before! Are you sure you want to launch it again?";
             };
@@ -293,26 +302,32 @@ namespace myUIController
             };
             trigger4Button.clicked += () =>
             {
-               HidePopupWindow();
-                SetActiveTriggerButton(trigger4Button); 
+                HidePopupWindow();
+                SetActiveTriggerButton(trigger4Button);
                 lastClickedButton = trigger4Button;
                 popupWindow.text.text = "UWB-4 has been launched before! Are you sure you want to launch it again?";
             };
 
             launchButton.clicked += () => { LaunchActiveUWB(); };
             launchButton.SetEnabled(false); //Cannot be clicked at beginning, need to select UWB Sensor first
-            
+
             // For UWB
-            startScanButton.clicked += () => { StartScan(); StartGeoSama?.Invoke();};
-            
-            rotate45Button.clicked += () => { 
+            startScanButton.clicked += () =>
+            {
+                StartScan();
+                StartGeoSama?.Invoke();
+            };
+
+            rotate45Button.clicked += () =>
+            {
                 SetStearingInformation(turnCCWButton);
                 Robot.Instance.tempAngle = Robot.Instance.Angle;
                 Robot.Instance.Angle = 45;
                 OnManualSteering?.Invoke();
             };
-            
-            rotate90Button.clicked += () => { 
+
+            rotate90Button.clicked += () =>
+            {
                 SetStearingInformation(turnCCWButton);
                 Robot.Instance.tempAngle = Robot.Instance.Angle;
                 Robot.Instance.Angle = 90;
@@ -325,7 +340,7 @@ namespace myUIController
                 popupWindow.text.text = "Robot will drive 2 meters forward! Please Start Recording on the Laptop.";
                 lastClickedButton = calibrateButton;
             };
-            
+
             // For Riegl
             startRieglScanButton.clicked += () => { StartRieglScan(); };
 
@@ -342,6 +357,9 @@ namespace myUIController
                 {
                     HidePopupWindow();
                     Application.Quit();
+                } else if (lastClickedButton == confirmedUwbCalibDone)
+                {
+                    HidePopupWindow();
                 }
                 else
                 {
@@ -349,16 +367,14 @@ namespace myUIController
                     Debug.Log("Launch enabled");
                 }
             };
+            
             popupWindow.canceled += () =>
             {
                 if (lastClickedButton != calibrateButton) DisableLaunch();
                 else HidePopupWindow();
             };
 
-            stopButton.clicked += () =>
-            {
-                ExecuteStopButtonCommand();
-            };
+            stopButton.clicked += () => { ExecuteStopButtonCommand(); };
 
             driveMode.clicked += () =>
             {
@@ -439,11 +455,11 @@ namespace myUIController
             {
                 SetOperationMode(Robot.OperationMode.manualDrive);
                 ChangeStartDrivingButton(false);
-                SetActiveButtonCSS(null, new Button[] {forwardButton,backwardButton,turnCWButton,turnCCWButton});
+                SetActiveButtonCSS(null, new Button[] { forwardButton, backwardButton, turnCWButton, turnCCWButton });
             };
             missionModeUWBButton.clicked += () => { SetOperationMode(Robot.OperationMode.uwbMission); };
             missionModeGeoSAMAButton.clicked += () => { SetOperationMode(Robot.OperationMode.geoSamaMission); };
-            scanModeButton.clicked += () => { SetOperationMode(Robot.OperationMode.rieglScan);};
+            scanModeButton.clicked += () => { SetOperationMode(Robot.OperationMode.rieglScan); };
 
             switchViewButton.clicked += () => { SwitchView(); };
 
@@ -462,6 +478,20 @@ namespace myUIController
             //connectionController.rosConnection.HUDPanel.gameObject.SetActive(showHud);
         }
 
+        /*
+         * Notifier when UWB calibration is finished
+         */
+        public void NotifyFinishedUwbCalibration()
+        {
+            ShowPopupWindow();
+            popupWindow.text.text = "Calibration finished. Please start moving the robot inside the area.";
+            lastClickedButton = confirmedUwbCalibDone;
+        }
+
+        /*
+         * Method to set the active trigger button and disable the other trigger buttons.
+         * Return if button clicked again but still executing the flashing of the button, so button cannot be clicked more times in a row.
+         */
         private void ExecuteStopButtonCommand()
         {
             if (stopButtonClicked) return;
@@ -470,29 +500,48 @@ namespace myUIController
             FlashStopButton();
             ChangeMarkerColor(false);
             ChangeStartDrivingButton(false);
-            SetActiveButtonCSS(null, new Button[] {forwardButton, backwardButton, turnCWButton, turnCCWButton});
+            SetActiveButtonCSS(null, new Button[] { forwardButton, backwardButton, turnCWButton, turnCCWButton });
         }
 
+        /// <summary>
+        /// Updates the error label and its background color in the UI based on the error count and error message.
+        /// </summary>
+        /// <param name="errorCount">The number of errors.</param>
+        /// <param name="errorMessage">The error message.</param>
         public void UpdateErrorLabel(int errorCount, string errorMessage)
         {
+            // If there are errors
             if (errorCount > 0)
             {
+                // Set the error message panel background color to red
                 errorMessagePanel.style.backgroundColor = Color.red;
+
+                // If the error message contains "Camera"
                 if (errorMessage.Contains("Camera"))
                 {
+                    // Set the error label text to "Error: Camera"
                     errorLabel.text = "Error: Camera";
-                } else if (errorMessage.Contains("Laser"))
+                }
+                // If the error message contains "Laser"
+                else if (errorMessage.Contains("Laser"))
                 {
+                    // Set the error label text to "Error: Laser"
                     errorLabel.text = "Error: Laser";
+                }
+                else
+                {
+                    // If the error message does not contain "Camera" or "Laser", set the error label text to "Error: Unknown"
+                    errorLabel.text = "Error: Unknown";
                 }
             }
             else
             {
+                // If there are no errors, set the error message panel background color to green and the error label text to "No Errors"
                 errorMessagePanel.style.backgroundColor = greenButtonColor;
                 errorLabel.text = "No Errors";
             }
         }
-        
+
         public void RenderRealsenseCamera(CompressedImageMsg msg)
         {
             Texture2D tex2D = msg.ToTexture2D();
@@ -513,10 +562,10 @@ namespace myUIController
 
             RenderTexture.active = previous;
             RenderTexture.ReleaseTemporary(renderTex);
-            
+
             Destroy(tex2D);
         }
-        
+
         public void RenderGeoSamaCamera(CompressedImageMsg msg)
         {
             Texture2D tex2D = msg.ToTexture2D();
@@ -537,10 +586,10 @@ namespace myUIController
 
             RenderTexture.active = previous;
             RenderTexture.ReleaseTemporary(renderTex);
-            
+
             Destroy(tex2D);
         }
-        
+
         Texture2D rotateTexture(Texture2D originalTexture, bool clockwise)
         {
             Color32[] original = originalTexture.GetPixels32();
@@ -587,7 +636,7 @@ namespace myUIController
                 rieglCautionPanel.style.display = DisplayStyle.Flex;
             }
         }
-        
+
         /*
          * Update the time passed label in the UI.
          * Start by 6 mins and count down to 0 in the format mm:ss
@@ -596,10 +645,10 @@ namespace myUIController
         {
             StartCoroutine(UpdateTimePassedLabelCoroutine());
         }
-        
+
         private IEnumerator UpdateTimePassedLabelCoroutine()
         {
-            int time = 360;
+            int time = 300;
             while (time > 0)
             {
                 int minutes = time / 60;
@@ -609,6 +658,7 @@ namespace myUIController
                 time--;
                 yield return new WaitForSeconds(1);
             }
+
             timePasedLabel.text = "00:00";
         }
 
@@ -623,7 +673,7 @@ namespace myUIController
         private IEnumerator ResetUICoroutine()
         {
             yield return new WaitForSeconds(0.5f);
-            
+
             if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Lars)
             {
                 missionModeUWBButton.style.display = DisplayStyle.None;
@@ -640,12 +690,14 @@ namespace myUIController
                 cameraWindowCharlie.style.display = DisplayStyle.None;
                 cameraWindowLars.style.display = DisplayStyle.None;
             }
+
             hideCamera.text = "Show Camera";
-            marker.transform.position = new Vector3(Robot.Instance.Robot3DModel.transform.position.x, 0f, Robot.Instance.Robot3DModel.transform.position.z);
+            marker.transform.position = new Vector3(Robot.Instance.Robot3DModel.transform.position.x, 0f,
+                Robot.Instance.Robot3DModel.transform.position.z);
             //Reset the Operation Mode and show the auto drive panel
             Robot.Instance._operationMode = Robot.OperationMode.autoDrive;
             SetOperationMode(Robot.Instance._operationMode);
-            
+
             //Reset the Distance Label
             distanceLabel.text = "0 m";
 
@@ -665,7 +717,7 @@ namespace myUIController
 
             //Reset the Camera Rotation
             cameraController.StartResetCameraRotation();
-            
+
             // Hide reset FOV / Rotation Button
             cameraController.resetButton.style.display = DisplayStyle.None;
         }
@@ -805,8 +857,11 @@ namespace myUIController
             // Convert click position to a proportion of the VisualElement's size (because it is in Pixels and not in World Units)
             clickPosition.x /= mainView.resolvedStyle.width;
             clickPosition.y /= mainView.resolvedStyle.height;
-            
-            Vector3 viewportPoint = new Vector3(clickPosition.x, 1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
+
+            Vector3
+                viewportPoint =
+                    new Vector3(clickPosition.x,
+                        1 - clickPosition.y); //Invert Y, because (0.0) is bottom left in UI, but top left in camera
             Vector3 worldPosition = new Vector3();
             Ray ray = cameraController.activeMainUICamera.ViewportPointToRay(viewportPoint);
 
@@ -815,13 +870,15 @@ namespace myUIController
             if (groundPlane.Raycast(ray, out float enter))
             {
                 worldPosition = ray.GetPoint(enter);
-                marker.transform.position = new Vector3(worldPosition.x, 0f, worldPosition.z); //Add 0.75f to make above the robot model
-                marker.transform.LookAt(cameraController.secondCamera.transform, Vector3.down); //rotate towards the camera
+                marker.transform.position =
+                    new Vector3(worldPosition.x, 0f, worldPosition.z); //Add 0.75f to make above the robot model
+                marker.transform.LookAt(cameraController.secondCamera.transform,
+                    Vector3.down); //rotate towards the camera
                 // Set the world coordinates in the robot model
                 Robot.Instance.SetGoalInWorldPos(worldPosition);
                 Debug.Log("Clicked Point: " + worldPosition);
             }
-            
+
             /*
             if (Robot.Instance.ActiveRobot == Robot.ACTIVEROBOT.Charlie)
             {
@@ -850,7 +907,7 @@ namespace myUIController
             UpdateDistanceLabel(distance);
             UpdateArrivalLabel(distance);
         }
-        
+
         private void UpdateArrivalLabel(float distance = 0)
         {
             if (distance == 0) return;
@@ -861,7 +918,7 @@ namespace myUIController
             distanceString += " m";
             arrivalLabel.text = distanceString;
         }
-        
+
         void Update()
         {
             UpdateArrivalDistance();
@@ -869,11 +926,11 @@ namespace myUIController
 
         private void UpdateArrivalDistance()
         {
-            
             // Calculate the distance between the robot and the marker
             if (arrow.GetComponent<MeshRenderer>().material.color == Color.green)
             {
-                distance = Vector3.Distance(Robot.Instance.Robot3DModel.transform.position, marker.transform.position) - 0.5f;
+                distance = Vector3.Distance(Robot.Instance.Robot3DModel.transform.position, marker.transform.position) -
+                           0.5f;
             }
 
             // Consider the robot to have arrived if the distance is less than 0.1 units
@@ -990,10 +1047,12 @@ namespace myUIController
             else if (clickedButton == backwardButton)
             {
                 Robot.Instance.Direction = Robot.DIRECTIONS.backward;
-            } else if (clickedButton == turnCWButton)
+            }
+            else if (clickedButton == turnCWButton)
             {
                 Robot.Instance.Direction = Robot.DIRECTIONS.right;
-            } else if (clickedButton == turnCCWButton)
+            }
+            else if (clickedButton == turnCCWButton)
             {
                 Robot.Instance.Direction = Robot.DIRECTIONS.left;
             }
@@ -1008,7 +1067,6 @@ namespace myUIController
          */
         private void IncrementAngleDuration()
         {
-            
             if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive)
             {
                 Robot.Instance.IncrementDistance(distanceStepSize);
@@ -1024,7 +1082,7 @@ namespace myUIController
             UpdateButtonStates();
             CheckShowResetButton();
         }
-        
+
         /*
          * Decrement the duration of the robot model and update the duration label in the UI
          */
@@ -1049,7 +1107,7 @@ namespace myUIController
             UpdateButtonStates();
             CheckShowResetButton();
         }
-        
+
         private void UpdateButtonStates()
         {
             if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive)
@@ -1066,10 +1124,12 @@ namespace myUIController
 
         private void CheckShowResetButton()
         {
-            if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive &&  Robot.Instance.Distance > 0 || Robot.Instance.ManualMode == Robot.MANUALMODE.rotate && Robot.Instance.Angle > 0)
+            if (Robot.Instance.ManualMode == Robot.MANUALMODE.drive && Robot.Instance.Distance > 0 ||
+                Robot.Instance.ManualMode == Robot.MANUALMODE.rotate && Robot.Instance.Angle > 0)
             {
                 resetStepsizeButton.style.display = DisplayStyle.Flex;
-            } else resetStepsizeButton.style.display = DisplayStyle.None;
+            }
+            else resetStepsizeButton.style.display = DisplayStyle.None;
         }
 
         private void ResetStepsize()
@@ -1085,9 +1145,10 @@ namespace myUIController
                 Robot.Instance.Angle = 0;
                 UpdateUnitValueLabel(true);
             }
+
             UpdateButtonStates();
         }
-        
+
 
         /*
          * Update the duration label in the UI with the duration of the robot model
@@ -1112,7 +1173,7 @@ namespace myUIController
                 Robot.Instance._operationMode = Robot.OperationMode.manualDrive;
                 SetManualDriveMode();
             }
-            
+
             else if (mode == Robot.OperationMode.uwbMission)
             {
                 Robot.Instance._operationMode = Robot.OperationMode.uwbMission;
@@ -1122,7 +1183,8 @@ namespace myUIController
             {
                 Robot.Instance._operationMode = Robot.OperationMode.geoSamaMission;
                 SetGeoSAMAMode();
-            } else if (mode == Robot.OperationMode.rieglScan)
+            }
+            else if (mode == Robot.OperationMode.rieglScan)
             {
                 Robot.Instance._operationMode = Robot.OperationMode.rieglScan;
                 SetRieglScanMode();
@@ -1414,12 +1476,12 @@ namespace myUIController
                 // Set text to "Scan finished" from the progress bar
                 scanProgressBar.title = "Scan finished";
             }
-            // On Lars start Riegl Scan (6 mins)
+            // On Lars start Riegl Scan (5 mins)
             else
             {
                 scanProgressRiegl.value = 0;
                 scanProgressRiegl.title = "Scanning...";
-                float duration = 360;
+                float duration = 300;
                 float timePassed = 0f;
                 while (timePassed < duration)
                 {

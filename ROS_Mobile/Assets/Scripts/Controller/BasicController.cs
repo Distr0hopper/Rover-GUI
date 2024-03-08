@@ -6,6 +6,7 @@ using RosMessageTypes.Geometry;
 using RosMessageTypes.Nav;
 using RosMessageTypes.ROSMobile;
 using RosMessageTypes.Sensor;
+using RosMessageTypes.Std;
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.MessageGeneration;
 using Unity.Robotics.Visualizations;
@@ -73,13 +74,26 @@ public class BasicController : MonoBehaviour
         {
             uiController.RenderRealsenseCamera(msg);
         });
-        
+        // Watchdog topic
         rosConnection.Subscribe<WD_active_failuresMsg>("/WD/active_failures", msg =>
         {
             errorMessageCount = msg.current_error_count;
             if (errorMessageCount > 0) errorMessage = msg.current_errors[0].error_description;
         });
-    
+        
+        // Calibration topic for UWB on charlie
+        rosConnection.Subscribe<BoolMsg>("uwb/calib_done", msg =>
+        {
+            if (msg.data)
+            {
+                Charlie.Instance.UwbCalibDone = true;
+                uiController.NotifyFinishedUwbCalibration();
+            }
+            else
+            {
+             Charlie.Instance.UwbCalibDone = false;  
+            }
+        });
     }
     
 

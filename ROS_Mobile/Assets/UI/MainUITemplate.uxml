@@ -123,11 +123,11 @@
                 <ui:VisualElement name="ProgressBarContainer" style="flex-grow: 0; min-width: 100%; flex-shrink: 0; margin-top: 3px; width: 100%; height: 20%;">
                     <ui:ProgressBar value="0" name="ScanProgressRiegl" style="height: 100%; flex-grow: 1; flex-shrink: 1;" />
                 </ui:VisualElement>
-                <ui:VisualElement name="RieglScanCaution" style="flex-grow: 0; flex-shrink: 0; width: 100%; height: 55%; border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); display: none;">
+                <ui:VisualElement name="RieglScanCaution" style="flex-grow: 0; flex-shrink: 0; width: 100%; height: 52%; border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); display: none;">
                     <ui:Label tabindex="-1" text="CAUTION" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold; color: rgb(255, 252, 0); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0; -unity-text-outline-width: 1px; -unity-text-outline-color: rgb(0, 0, 0); font-size: 40px;" />
                     <ui:Label tabindex="-1" text="Dont move the robot until the scan is finished. Always check on Riegl if scan finished." parse-escape-sequences="true" display-tooltip-when-elided="true" style="white-space: normal; -unity-text-align: upper-center;" />
                     <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center;">
-                        <ui:Label tabindex="-1" text="06:00" parse-escape-sequences="true" display-tooltip-when-elided="true" name="timePassedLabel" />
+                        <ui:Label tabindex="-1" text="05:00" parse-escape-sequences="true" display-tooltip-when-elided="true" name="timePassedLabel" />
                         <ui:Label tabindex="-1" text="min" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                     </ui:VisualElement>
                 </ui:VisualElement>
